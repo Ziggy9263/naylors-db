@@ -4,31 +4,47 @@ const jwt = require('jsonwebtoken');
 const chai = require('chai'); // eslint-disable-line import/newline-after-import
 const expect = chai.expect;
 const app = require('../../index');
+const User = require('../user/user.model');
 const config = require('../../config/config');
 
 chai.config.includeStack = true;
 
+const validUserCredentials = {
+  email: 'BigZ93@gmail.com',
+  password: 'BigZ93lmao'
+};
+const invalidUserCredentials = {
+  email: 'BigZ93@gmail.com',
+  password: 'IDontKnow'
+};
+
+before((done) => {
+  // Create user so we have credentials we can use
+  const user = new User({
+    email: 'BigZ93@gmail.com',
+    password: 'BigZ93lmao',
+    name: 'Jerry Smith'
+  });
+  user.save();
+  done();
+});
+after((done) => {
+  // Delete user so my tests don't break lol
+  User.remove({ email: validUserCredentials.email });
+  done();
+});
+
 describe('## Auth APIs', () => {
-  const validUserCredentials = {
-    username: 'react',
-    password: 'express'
-  };
-
-  const invalidUserCredentials = {
-    username: 'react',
-    password: 'IDontKnow'
-  };
-
   let jwtToken;
 
   describe('# POST /api/auth/login', () => {
-    it('should return Authentication error', (done) => {
+    it('should return Bad Request', (done) => {
       request(app)
         .post('/api/auth/login')
         .send(invalidUserCredentials)
-        .expect(httpStatus.UNAUTHORIZED)
+        .expect(httpStatus.BAD_REQUEST)
         .then((res) => {
-          expect(res.body.message).to.equal('Authentication error');
+          expect(res.body.message).to.equal('Bad Request');
           done();
         })
         .catch(done);
@@ -43,7 +59,7 @@ describe('## Auth APIs', () => {
           expect(res.body).to.have.property('token');
           jwt.verify(res.body.token, config.jwtSecret, (err, decoded) => {
             expect(err).to.not.be.ok; // eslint-disable-line no-unused-expressions
-            expect(decoded.username).to.equal(validUserCredentials.username);
+            expect(decoded.email).to.equal(validUserCredentials.email.toLowerCase());
             jwtToken = `Bearer ${res.body.token}`;
             done();
           });

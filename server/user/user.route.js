@@ -1,4 +1,5 @@
 const express = require('express');
+// const expressJwt = require('express-jwt');
 const validate = require('express-validation');
 const paramValidation = require('../../config/param-validation');
 const userCtrl = require('./user.controller');

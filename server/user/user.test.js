@@ -20,8 +20,10 @@ after((done) => {
 
 describe('## User APIs', () => {
   let user = {
-    username: 'KK123',
-    mobileNumber: '1234567890'
+    email: 'kk123@gmail.com',
+    phone: '1234567890',
+    password: 'IAMaBOYSCOUT',
+    name: 'Jerry Smith'
   };
 
   describe('# POST /api/users', () => {
@@ -31,8 +33,10 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.OK)
         .then((res) => {
-          expect(res.body.username).to.equal(user.username);
-          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
+          expect(res.body.email).to.equal(user.email);
+          expect(res.body.phone).to.equal(user.phone);
+          expect(!res.body.password);
+          expect(res.body.name).to.equal(user.name);
           user = res.body;
           done();
         })
@@ -46,8 +50,8 @@ describe('## User APIs', () => {
         .get(`/api/users/${user._id}`)
         .expect(httpStatus.OK)
         .then((res) => {
-          expect(res.body.username).to.equal(user.username);
-          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
+          expect(res.body.email).to.equal(user.email);
+          expect(res.body.phone).to.equal(user.phone);
           done();
         })
         .catch(done);
@@ -67,14 +71,14 @@ describe('## User APIs', () => {
 
   describe('# PUT /api/users/:userId', () => {
     it('should update user details', (done) => {
-      user.username = 'KK';
+      user.email = 'KK@gmail.COM';
       request(app)
         .put(`/api/users/${user._id}`)
         .send(user)
         .expect(httpStatus.OK)
         .then((res) => {
-          expect(res.body.username).to.equal('KK');
-          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
+          expect(res.body.email).to.equal('kk@gmail.com');
+          expect(res.body.phone).to.equal(user.phone);
           done();
         })
         .catch(done);
@@ -112,8 +116,8 @@ describe('## User APIs', () => {
         .delete(`/api/users/${user._id}`)
         .expect(httpStatus.OK)
         .then((res) => {
-          expect(res.body.username).to.equal('KK');
-          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
+          expect(res.body.email).to.equal('kk@gmail.com');
+          expect(res.body.phone).to.equal(user.phone);
           done();
         })
         .catch(done);

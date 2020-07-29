@@ -1,4 +1,17 @@
 const User = require('./user.model');
+const uuid = require('uuid');
+
+
+/**
+ * Remove sensitive data from user object.
+ * @param {Object<User>} userInfo - Should be a mongoose object
+ * @returns {Object<User>}
+ */
+function publicize(userInfo) {
+  const publicUser = userInfo.toObject();
+  if ('password' in userInfo) delete publicUser.password;
+  return publicUser;
+}
 
 /**
  * Load user and append to req.
@@ -22,34 +35,42 @@ function get(req, res) {
 
 /**
  * Create new user
- * @property {string} req.body.username - The username of user.
- * @property {string} req.body.mobileNumber - The mobileNumber of user.
+ * @property {string} req.body.email - The email of user.
+ * @property {string} req.body.phone - The phone of user.
  * @returns {User}
  */
 function create(req, res, next) {
   const user = new User({
-    username: req.body.username,
-    mobileNumber: req.body.mobileNumber
+    email: req.body.email,
+    password: req.body.password,
+    name: req.body.name,
+    phone: req.body.phone,
+    business: req.body.businessInfo,
+    address: req.body.addressInfo,
+    taxExempt: req.body.taxExempt,
+    isAdmin: req.body.isAdmin,
+    comments: req.body.comments,
+    verification: uuid.v4()
   });
 
   user.save()
-    .then(savedUser => res.json(savedUser))
+    .then(savedUser => res.json(publicize(savedUser)))
     .catch(e => next(e));
 }
 
 /**
  * Update existing user
- * @property {string} req.body.username - The username of user.
- * @property {string} req.body.mobileNumber - The mobileNumber of user.
+ * @property {string} req.body.email - The email of user.
+ * @property {string} req.body.phone - The phone of user.
  * @returns {User}
  */
 function update(req, res, next) {
   const user = req.user;
-  user.username = req.body.username;
-  user.mobileNumber = req.body.mobileNumber;
+  user.email = req.body.email;
+  user.phone = req.body.phone;
 
   user.save()
-    .then(savedUser => res.json(savedUser))
+    .then(savedUser => res.json(publicize(savedUser)))
     .catch(e => next(e));
 }
 
