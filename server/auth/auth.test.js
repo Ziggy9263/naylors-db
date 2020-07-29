@@ -6,6 +6,7 @@ const expect = chai.expect;
 const app = require('../../index');
 const User = require('../user/user.model');
 const config = require('../../config/config');
+const uuid = require('uuid');
 
 chai.config.includeStack = true;
 
@@ -17,13 +18,16 @@ const invalidUserCredentials = {
   email: 'BigZ93@gmail.com',
   password: 'IDontKnow'
 };
+let verification;
 
 before((done) => {
   // Create user so we have credentials we can use
+  verification = uuid.v4();
   const user = new User({
     email: 'BigZ93@gmail.com',
     password: 'BigZ93lmao',
-    name: 'Jerry Smith'
+    name: 'Jerry Smith',
+    verification
   });
   user.save();
   done();
@@ -63,6 +67,30 @@ describe('## Auth APIs', () => {
             jwtToken = `Bearer ${res.body.token}`;
             done();
           });
+        })
+        .catch(done);
+    });
+  });
+
+  describe('# GET /api/auth/verify/:token', () => {
+    it('should return Unauthorized with invalid token', (done) => {
+      request(app)
+        .get('/api/auth/verify/879df6g-876g6-d67g876-8s79dg')
+        .expect(httpStatus.BAD_REQUEST)
+        .then((res) => {
+          expect(res.body.message).to.equal('Bad Request');
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should return verificationSuccess', (done) => {
+      request(app)
+        .get(`/api/auth/verify/${verification}`)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body.verificationSuccess);
+          done();
         })
         .catch(done);
     });

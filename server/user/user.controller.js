@@ -26,6 +26,23 @@ function load(req, res, next, id) {
 }
 
 /**
+ * Load User Via Verification Token
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @param {string} token - Verification token created by UUID upon user creation
+ */
+function loadByVerificationToken(req, res, next, token) {
+  User.findOne({ verification: token })
+  .then((user) => {
+    // eslint-disable-next-line no-param-reassign
+    req.user = user;
+    return next();
+  })
+  .catch(e => next(e));
+}
+
+/**
  * Get user
  * @returns {User}
  */
@@ -98,4 +115,4 @@ function remove(req, res, next) {
     .catch(e => next(e));
 }
 
-module.exports = { load, get, create, update, list, remove };
+module.exports = { load, loadByVerificationToken, get, create, update, list, remove };

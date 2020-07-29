@@ -28,5 +28,12 @@ module.exports = {
       email: Joi.string().required(),
       password: Joi.string().required()
     }
+  },
+
+  // GET /api/auth/verify/:token
+  verify: {
+    params: {
+      token: Joi.string().required()
+    }
   }
 };

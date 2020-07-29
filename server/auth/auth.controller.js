@@ -43,6 +43,17 @@ function login(req, res, next) {
   .catch(e => next(e));
 }
 
+function verify(req, res, next) {
+  const user = req.user;
+  if (!user) next(new APIError('Token Invalid', httpStatus.BAD_REQUEST));
+  if (user.verification === req.params.token) {
+    user.verification = 'verified';
+    user.save();
+    return res.json({ verificationSuccess: true });
+  }
+  return next(new APIError('Verification Error', httpStatus.INTERNAL_SERVER_ERROR));
+}
+
 /**
  * This is a protected route. Will return random number only if jwt token is provided in header.
  * @param req
@@ -57,4 +68,4 @@ function getRandomNumber(req, res) {
   });
 }
 
-module.exports = { login, getRandomNumber };
+module.exports = { login, verify, getRandomNumber };
