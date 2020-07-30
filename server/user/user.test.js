@@ -14,6 +14,8 @@ after((done) => {
   // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
   mongoose.models = {};
   mongoose.modelSchemas = {};
+  // clean up for next tests
+  mongoose.connection.db.collection('users').deleteMany({ email: 'bigz93@gmail.com' });
   mongoose.connection.close();
   done();
 });
@@ -41,6 +43,10 @@ describe('## User APIs', () => {
           done();
         })
         .catch(done);
+    });
+    it('should not reveal verification code', (done) => {
+      expect(user.verification).to.equal('unverified');
+      done();
     });
   });
 

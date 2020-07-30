@@ -35,5 +35,36 @@ module.exports = {
     params: {
       token: Joi.string().required()
     }
+  },
+
+  // POST /api/products
+  createProduct: {
+    body: {
+      tag: Joi.number().required(),
+      name: Joi.string().required(),
+      description: Joi.string(),
+      category: Joi.string(),
+      price: Joi.number().required(),
+      images: Joi.array(),
+      taxExempt: Joi.string(),
+      comments: Joi.string()
+    }
+  },
+
+  // PUT /api/products/:tag
+  updateProduct: {
+    body: {
+      tag: Joi.number().required(),
+      name: Joi.string().required(),
+      description: Joi.string(),
+      category: Joi.string(),
+      price: Joi.number().required(),
+      images: Joi.array(),
+      taxExempt: Joi.string(),
+      comments: Joi.string()
+    },
+    params: {
+      tag: Joi.number().required()
+    }
   }
 };

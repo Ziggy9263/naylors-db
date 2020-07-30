@@ -32,11 +32,6 @@ before((done) => {
   user.save();
   done();
 });
-after((done) => {
-  // Delete user so my tests don't break lol
-  User.remove({ email: validUserCredentials.email });
-  done();
-});
 
 describe('## Auth APIs', () => {
   let jwtToken;

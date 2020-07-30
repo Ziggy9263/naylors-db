@@ -1,7 +1,6 @@
 const User = require('./user.model');
 const uuid = require('uuid');
 
-
 /**
  * Remove sensitive data from user object.
  * @param {Object<User>} userInfo - Should be a mongoose object
@@ -10,6 +9,9 @@ const uuid = require('uuid');
 function publicize(userInfo) {
   const publicUser = userInfo.toObject();
   if ('password' in userInfo) delete publicUser.password;
+  if ('verification' in userInfo) {
+    publicUser.verification = (userInfo.verification === 'verified') ? 'verified' : 'unverified';
+  }
   return publicUser;
 }
 
