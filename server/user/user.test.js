@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const request = require('supertest-as-promised');
 const httpStatus = require('http-status');
+const config = require('../../config/config');
 const chai = require('chai'); // eslint-disable-line import/newline-after-import
 const expect = chai.expect;
 const app = require('../../index');
@@ -80,11 +81,39 @@ describe('## User APIs', () => {
       user.email = 'KK@gmail.COM';
       request(app)
         .put(`/api/users/${user._id}`)
-        .send(user)
+        .send({ email: user.email })
         .expect(httpStatus.OK)
         .then((res) => {
+          expect(res.statusCode).to.equal(200);
           expect(res.body.email).to.equal('kk@gmail.com');
           expect(res.body.phone).to.equal(user.phone);
+          done();
+        })
+        .catch(done);
+    });
+    it('should not update user if incorrect admin code is provided', (done) => {
+      user.isAdmin = true;
+      user.adminVerification = 'random-uuid-lma0-1337hax';
+      request(app)
+        .put(`/api/users/${user._id}`)
+        .send({ isAdmin: user.isAdmin, adminVerification: user.adminVerification })
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body.isAdmin).to.equal(false);
+          done();
+        })
+        .catch(done);
+    })
+    it('should update user to admin with valid adminCode', (done) => {
+      user.isAdmin = true;
+      user.adminVerification = config.adminCode;
+      request(app)
+        .put(`/api/users/${user._id}`)
+        .send({ isAdmin: user.isAdmin, adminVerification: user.adminVerification })
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body.isAdmin).to.equal(true);
+          expect(!res.body.adminVerification);
           done();
         })
         .catch(done);

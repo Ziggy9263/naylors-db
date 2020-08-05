@@ -17,6 +17,21 @@ after((done) => {
 });
 
 describe('## Product APIs', () => {
+  let authHeader;
+
+  before((done) => {
+    // Get JWT token for authentication purposes.
+    request(app)
+      .post('/api/auth/login')
+      .send({ email: 'bigz93@gmail.com', password: 'BigZ93lmao' })
+      .expect(httpStatus.OK)
+      .then((res) => {
+        authHeader = res.body.token;
+        done();
+      })
+      .catch(done);
+  });
+
   let product = {
     tag: 133790,
     name: 'Scratch',
@@ -29,9 +44,22 @@ describe('## Product APIs', () => {
   };
 
   describe('# POST /api/products', () => {
+    it('should fail to create a new product due to invalid token', (done) => {
+      request(app)
+        .post('/api/products')
+        .set('Authorization', 'Bearer lkjfhsdjlkfhg')
+        .send(product)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then((res) => {
+          expect(res.body.message).to.equal('Unauthorized');
+          done();
+        })
+        .catch(done);
+    });
     it('should create a new product', (done) => {
       request(app)
         .post('/api/products')
+        .set('Authorization', `Bearer ${authHeader}`)
         .send(product)
         .expect(httpStatus.OK)
         .then((res) => {
@@ -70,11 +98,24 @@ describe('## Product APIs', () => {
   });
 
   describe('# PUT /api/products/:tag', () => {
+    it('should fail to update product due to invalid token', (done) => {
+      request(app)
+        .put('/api/products/133790')
+        .set('Authorization', 'Bearer lkjfhsdjlkfhg')
+        .send(product)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then((res) => {
+          expect(res.body.message).to.equal('Unauthorized');
+          done();
+        })
+        .catch(done);
+    });
     it('should update product details', (done) => {
       product.tag = 173359;
       request(app)
         .put('/api/products/133790')
         .send(product)
+        .set('Authorization', `Bearer ${authHeader}`)
         .expect(httpStatus.OK)
         .then((res) => {
           expect(res.body.tag).to.equal(173359);
@@ -111,9 +152,31 @@ describe('## Product APIs', () => {
   });
 
   describe('# DELETE /api/products/', () => {
+    it('should fail to delete product due to invalid token', (done) => {
+      request(app)
+        .delete(`/api/products/${product.tag}`)
+        .set('Authorization', 'Bearer lksjdhgsf')
+        .expect(httpStatus.UNAUTHORIZED)
+        .then((res) => {
+          expect(res.body.message).to.equal('Unauthorized');
+          done();
+        })
+        .catch(done);
+    });
+    it('should fail to delete product due to missing token', (done) => {
+      request(app)
+        .delete(`/api/products/${product.tag}`)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then((res) => {
+          expect(res.body.message).to.equal('Unauthorized');
+          done();
+        })
+        .catch(done);
+    });
     it('should delete product', (done) => {
       request(app)
         .delete(`/api/products/${product.tag}`)
+        .set('Authorization', `Bearer ${authHeader}`)
         .expect(httpStatus.OK)
         .then((res) => {
           expect(res.body.tag).to.equal(product.tag);

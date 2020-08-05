@@ -1,5 +1,6 @@
 const express = require('express');
-// const expressJwt = require('express-jwt');
+const expressJwt = require('express-jwt');
+const config = require('../../config/config');
 const validate = require('express-validation');
 const paramValidation = require('../../config/param-validation');
 const productCtrl = require('./product.controller');
@@ -11,17 +12,17 @@ router.route('/')
   .get(productCtrl.list)
 
   /** POST /api/products - Create new product */
-  .post(validate(paramValidation.createProduct), productCtrl.create);
+  .post(expressJwt({ secret: config.jwtSecret }), validate(paramValidation.createProduct), productCtrl.create);
 
 router.route('/:tag')
   /** GET /api/products/:tag - Get product */
   .get(productCtrl.get)
 
   /** PUT /api/products/:tag - Update product */
-  .put(validate(paramValidation.updateProduct), productCtrl.update)
+  .put(expressJwt({ secret: config.jwtSecret }), validate(paramValidation.updateProduct), productCtrl.update)
 
   /** DELETE /api/products/:tag - Delete product */
-  .delete(productCtrl.remove);
+  .delete(expressJwt({ secret: config.jwtSecret }), productCtrl.remove);
 
 /** Load product when API with tag route parameter is hit */
 router.param('tag', productCtrl.load);

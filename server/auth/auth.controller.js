@@ -4,12 +4,6 @@ const APIError = require('../helpers/APIError');
 const config = require('../../config/config');
 const User = require('../user/user.model');
 
-/* sample user, used for authentication
-const user = {
-  email: 'react',
-  password: 'express'
-};*/
-
 /**
  * Returns jwt token if valid email and password is provided
  * @param req

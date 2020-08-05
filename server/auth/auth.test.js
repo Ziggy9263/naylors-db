@@ -68,7 +68,7 @@ describe('## Auth APIs', () => {
   });
 
   describe('# GET /api/auth/verify/:token', () => {
-    it('should return Unauthorized with invalid token', (done) => {
+    it('should return Bad Request with invalid token', (done) => {
       request(app)
         .get('/api/auth/verify/879df6g-876g6-d67g876-8s79dg')
         .expect(httpStatus.BAD_REQUEST)

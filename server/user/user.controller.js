@@ -1,5 +1,7 @@
 const User = require('./user.model');
 const uuid = require('uuid');
+const config = require('../../config/config')
+// const { config } = require('bluebird');
 
 /**
  * Remove sensitive data from user object.
@@ -12,6 +14,7 @@ function publicize(userInfo) {
   if ('verification' in userInfo) {
     publicUser.verification = (userInfo.verification === 'verified') ? 'verified' : 'unverified';
   }
+  if ('isAdmin' in userInfo === false) delete publicUser.isAdmin;
   return publicUser;
 }
 
@@ -56,10 +59,17 @@ function get(req, res) {
  * Create new user
  * @property {string} req.body.email - The email of user.
  * @property {string} req.body.phone - The phone of user.
+ * @property {string} req.body.password
+ * @property {string} req.body.business
+ * @property {string} req.body.address
+ * @property {string} req.body.taxExempt
+ * @property {boolean} req.body.isAdmin
+ * @property {string} req.body.adminVerification - Must match server secret key
+ * @property {string} req.body.comments
  * @returns {User}
  */
 function create(req, res, next) {
-  const user = new User({
+  const userData = {
     email: req.body.email,
     password: req.body.password,
     name: req.body.name,
@@ -67,11 +77,14 @@ function create(req, res, next) {
     business: req.body.businessInfo,
     address: req.body.addressInfo,
     taxExempt: req.body.taxExempt,
-    isAdmin: req.body.isAdmin,
     comments: req.body.comments,
     verification: uuid.v4()
-  });
+  };
+  if (req.body.isAdmin) {
+    userData.isAdmin = (req.body.adminVerification === config.adminCode);
+  }
 
+  const user = new User(userData);
   user.save()
     .then(savedUser => res.json(publicize(savedUser)))
     .catch(e => next(e));
@@ -81,12 +94,25 @@ function create(req, res, next) {
  * Update existing user
  * @property {string} req.body.email - The email of user.
  * @property {string} req.body.phone - The phone of user.
+ * @property {string} req.body.password
+ * @property {string} req.body.business
+ * @property {string} req.body.address
+ * @property {string} req.body.taxExempt
+ * @property {boolean} req.body.isAdmin
+ * @property {string} req.body.adminVerification - Must match server secret key
+ * @property {string} req.body.comments
  * @returns {User}
  */
 function update(req, res, next) {
   const user = req.user;
-  user.email = req.body.email;
-  user.phone = req.body.phone;
+  const keys = Object.keys(req.body);
+  keys.forEach((key) => {
+    user[key] = req.body[key];
+  });
+
+  if (req.body.isAdmin) {
+    user.isAdmin = (req.body.adminVerification === config.adminCode);
+  }
 
   user.save()
     .then(savedUser => res.json(publicize(savedUser)))

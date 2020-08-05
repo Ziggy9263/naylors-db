@@ -7,15 +7,29 @@ module.exports = {
       email: Joi.string().required(),
       password: Joi.string().required(),
       name: Joi.string().required(),
-      phone: Joi.string().regex(/^[1-9][0-9]{9}$/)
+      phone: Joi.string().regex(/\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/).default(null),
+      business: Joi.string().default(null),
+      address: Joi.string().default(null),
+      taxExempt: Joi.string().default(null),
+      isAdmin: Joi.boolean().default(false),
+      adminVerification: Joi.string().default(null),
+      comments: Joi.string().default(null)
     }
   },
 
   // UPDATE /api/users/:userId
   updateUser: {
     body: {
-      email: Joi.string().required(),
-      phone: Joi.string().regex(/^[1-9][0-9]{9}$/).required()
+      email: Joi.string(),
+      phone: Joi.string().regex(/\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/),
+      password: Joi.string(),
+      name: Joi.string(),
+      business: Joi.string(),
+      address: Joi.string(),
+      taxExempt: Joi.string(),
+      isAdmin: Joi.boolean(),
+      adminVerification: Joi.string(),
+      comments: Joi.string()
     },
     params: {
       userId: Joi.string().hex().required()

@@ -18,6 +18,8 @@ const envVarsSchema = Joi.object({
     }),
   JWT_SECRET: Joi.string().required()
     .description('JWT Secret required to sign'),
+  ADMIN_CODE: Joi.string().required()
+    .description('Code used to create an administrator user.'),
   MONGO_HOST: Joi.string().required()
     .description('Mongo DB host url'),
   MONGO_PORT: Joi.number()
@@ -35,6 +37,7 @@ const config = {
   port: envVars.PORT,
   mongooseDebug: envVars.MONGOOSE_DEBUG,
   jwtSecret: envVars.JWT_SECRET,
+  adminCode: envVars.ADMIN_CODE,
   mongo: {
     host: envVars.MONGO_HOST,
     port: envVars.MONGO_PORT
