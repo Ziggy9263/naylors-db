@@ -17,6 +17,7 @@ after((done) => {
   mongoose.modelSchemas = {};
   // clean up for next tests
   mongoose.connection.db.collection('users').deleteMany({ email: 'bigz93@gmail.com' });
+  mongoose.connection.db.collection('users').deleteMany({ email: 'bigz94@gmail.com' });
   mongoose.connection.close();
   done();
 });

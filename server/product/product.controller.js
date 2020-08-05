@@ -1,4 +1,6 @@
 const Product = require('./product.model');
+const httpStatus = require('http-status');
+const APIError = require('../helpers/APIError');
 
 
 /**
@@ -65,6 +67,8 @@ function get(req, res) {
  * @returns {Product}
  */
 function create(req, res, next) {
+  const user = req.user;
+  if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
   const product = new Product({
     tag: req.body.tag,
     name: req.body.name,
@@ -76,7 +80,7 @@ function create(req, res, next) {
     comments: req.body.comments
   });
 
-  product.save()
+  return product.save()
     .then(savedProduct => res.json(savedProduct))
     .catch(e => next(e));
 }
@@ -88,6 +92,8 @@ function create(req, res, next) {
  * @returns {Product}
  */
 function update(req, res, next) {
+  const user = req.user;
+  if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
   const product = req.product;
   product.tag = req.body.tag;
   product.name = req.body.name;
@@ -98,7 +104,7 @@ function update(req, res, next) {
   product.taxExempt = req.body.taxExempt;
   product.comments = req.body.comments;
 
-  product.save()
+  return product.save()
     .then(savedProduct => res.json(savedProduct))
     .catch(e => next(e));
 }
@@ -121,8 +127,10 @@ function list(req, res, next) {
  * @returns {Product}
  */
 function remove(req, res, next) {
+  const user = req.user;
+  if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
   const product = req.product;
-  product.remove()
+  return product.remove()
     .then(deletedProduct => res.json(deletedProduct))
     .catch(e => next(e));
 }

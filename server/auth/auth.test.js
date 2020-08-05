@@ -21,7 +21,7 @@ const invalidUserCredentials = {
 let verification;
 
 before((done) => {
-  // Create user so we have credentials we can use
+  // Create unprivileged user
   verification = uuid.v4();
   const user = new User({
     email: 'BigZ93@gmail.com',
@@ -30,6 +30,16 @@ before((done) => {
     verification
   });
   user.save();
+  // Create privileged user
+  const admin = new User({
+    email: 'BigZ94@gmail.com',
+    password: 'BigZ94lmao',
+    name: 'Beth Smith',
+    verification,
+    isAdmin: true,
+    adminVerification: config.adminCode
+  });
+  admin.save();
   done();
 });
 

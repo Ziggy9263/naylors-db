@@ -17,19 +17,33 @@ after((done) => {
 });
 
 describe('## Product APIs', () => {
-  let authHeader;
+  let unprivilegedAuthHeader;
+  let privilegedAuthHeader;
 
   before((done) => {
-    // Get JWT token for authentication purposes.
+    // Get unprivileged JWT token.
     request(app)
       .post('/api/auth/login')
-      .send({ email: 'bigz93@gmail.com', password: 'BigZ93lmao' })
+      .send({
+        email: 'bigz93@gmail.com',
+        password: 'BigZ93lmao' })
       .expect(httpStatus.OK)
       .then((res) => {
-        authHeader = res.body.token;
-        done();
+        unprivilegedAuthHeader = res.body.token;
       })
       .catch(done);
+    // Get privileged JWT token.
+    request(app)
+      .post('/api/auth/login')
+      .send({
+        email: 'bigz94@gmail.com',
+        password: 'BigZ94lmao' })
+      .expect(httpStatus.OK)
+      .then((res) => {
+        privilegedAuthHeader = res.body.token;
+      })
+      .catch(done);
+    done();
   });
 
   let product = {
@@ -56,10 +70,22 @@ describe('## Product APIs', () => {
         })
         .catch(done);
     });
+    it('should fail to create a new product due to lack of admin', (done) => {
+      request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${unprivilegedAuthHeader}`)
+        .send(product)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then((res) => {
+          expect(res.body.message).to.equal('Unauthorized');
+          done();
+        })
+        .catch(done);
+    });
     it('should create a new product', (done) => {
       request(app)
         .post('/api/products')
-        .set('Authorization', `Bearer ${authHeader}`)
+        .set('Authorization', `Bearer ${privilegedAuthHeader}`)
         .send(product)
         .expect(httpStatus.OK)
         .then((res) => {
@@ -110,12 +136,25 @@ describe('## Product APIs', () => {
         })
         .catch(done);
     });
+    it('should fail to update product details due to lack of admin', (done) => {
+      product.tag = 173359;
+      request(app)
+        .put('/api/products/133790')
+        .send(product)
+        .set('Authorization', `Bearer ${unprivilegedAuthHeader}`)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then((res) => {
+          expect(res.body.message).to.equal('Unauthorized');
+          done();
+        })
+        .catch(done);
+    });
     it('should update product details', (done) => {
       product.tag = 173359;
       request(app)
         .put('/api/products/133790')
         .send(product)
-        .set('Authorization', `Bearer ${authHeader}`)
+        .set('Authorization', `Bearer ${privilegedAuthHeader}`)
         .expect(httpStatus.OK)
         .then((res) => {
           expect(res.body.tag).to.equal(173359);
@@ -173,10 +212,21 @@ describe('## Product APIs', () => {
         })
         .catch(done);
     });
+    it('should fail to delete product due to lack of admin', (done) => {
+      request(app)
+        .delete(`/api/products/${product.tag}`)
+        .set('Authorization', `Bearer ${unprivilegedAuthHeader}`)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then((res) => {
+          expect(res.body.message).to.equal('Unauthorized');
+          done();
+        })
+        .catch(done);
+    });
     it('should delete product', (done) => {
       request(app)
         .delete(`/api/products/${product.tag}`)
-        .set('Authorization', `Bearer ${authHeader}`)
+        .set('Authorization', `Bearer ${privilegedAuthHeader}`)
         .expect(httpStatus.OK)
         .then((res) => {
           expect(res.body.tag).to.equal(product.tag);
