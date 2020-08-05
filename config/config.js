@@ -23,7 +23,16 @@ const envVarsSchema = Joi.object({
   MONGO_HOST: Joi.string().required()
     .description('Mongo DB host url'),
   MONGO_PORT: Joi.number()
-    .default(27017)
+    .default(27017),
+  SMTP_HOST: Joi.string().required()
+    .description('SMTP Hostname'),
+  SMTP_PORT: Joi.number()
+    .default(587),
+  SMTP_USER: Joi.string().required()
+    .description('SMTP Username'),
+  SMTP_PASS: Joi.string().required()
+    .description('SMTP Password')
+
 }).unknown()
   .required();
 
@@ -41,6 +50,12 @@ const config = {
   mongo: {
     host: envVars.MONGO_HOST,
     port: envVars.MONGO_PORT
+  },
+  smtp: {
+    host: envVars.SMTP_HOST,
+    port: envVars.SMTP_PORT,
+    user: envVars.SMTP_USER,
+    pass: envVars.SMTP_PASS
   }
 };
 

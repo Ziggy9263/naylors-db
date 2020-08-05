@@ -1,6 +1,7 @@
 const User = require('./user.model');
 const uuid = require('uuid');
-const config = require('../../config/config')
+const config = require('../../config/config');
+const mail = require('../helpers/mail');
 // const { config } = require('bluebird');
 
 /**
@@ -86,7 +87,10 @@ function create(req, res, next) {
 
   const user = new User(userData);
   user.save()
-    .then(savedUser => res.json(publicize(savedUser)))
+    .then((savedUser) => {
+      // mail.sendVerification(savedUser); UNCOMMENT WHEN DESIRED
+      res.json(publicize(savedUser));
+    })
     .catch(e => next(e));
 }
 

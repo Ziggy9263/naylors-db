@@ -59,6 +59,7 @@
     "method-override": "^2.3.10",
     "mongoose": "4.7.4",
     "morgan": "1.9.0",
+    "nodemailer": "false6.4.11",
     "uuid": "false8.3.0",
     "winston": "2.4.1"
   },
