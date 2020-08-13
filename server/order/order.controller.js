@@ -1,7 +1,6 @@
 const Order = require('./order.model');
 const httpStatus = require('http-status');
 const APIError = require('../helpers/APIError');
-const productCtrl = require('../product/product.controller.js');
 
 
 /**
@@ -88,7 +87,7 @@ function create(req, res, next) {
  */
 function update(req, res, next) {
   // Notes for Dev: Do not allow update after payment complete.
-  const user = req.user;
+  // const user = req.user;
   // if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
   const order = req.order;
   // TODO: Ensure that the only people updating are admin or the user that created it.
