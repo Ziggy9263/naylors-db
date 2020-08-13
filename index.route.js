@@ -2,6 +2,7 @@ const express = require('express');
 const userRoutes = require('./server/user/user.route');
 const authRoutes = require('./server/auth/auth.route');
 const productRoutes = require('./server/product/product.route');
+const orderRoutes = require('./server/order/order.route');
 
 const router = express.Router(); // eslint-disable-line new-cap
 
@@ -20,5 +21,9 @@ router.use('/auth', authRoutes);
 
 // mount product routes at /products
 router.use('/products', productRoutes);
+
+// mount order routes at /orders
+router.use('/orders', orderRoutes);
+
 
 module.exports = router;

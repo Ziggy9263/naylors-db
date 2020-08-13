@@ -7,7 +7,9 @@ module.exports = {
       email: Joi.string().required(),
       password: Joi.string().required(),
       name: Joi.string().required(),
-      phone: Joi.string().regex(/\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/).default(null),
+      phone: Joi.string()
+        .regex(/\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/)
+        .default(null),
       business: Joi.string().default(null),
       address: Joi.string().default(null),
       taxExempt: Joi.string().default(null),
@@ -21,7 +23,8 @@ module.exports = {
   updateUser: {
     body: {
       email: Joi.string(),
-      phone: Joi.string().regex(/\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/),
+      phone: Joi.string()
+        .regex(/\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/),
       password: Joi.string(),
       name: Joi.string(),
       business: Joi.string(),
@@ -79,6 +82,19 @@ module.exports = {
     },
     params: {
       tag: Joi.number().required()
+    }
+  },
+
+  // POST /api/orders
+  createOrder: {
+    body: {
+      cartDetail: Joi.array().items(
+        Joi.object().keys({
+          product: Joi.number(),
+          quantity: Joi.number()
+        })
+      ),
+      userComments: Joi.string()
     }
   }
 };
