@@ -32,6 +32,18 @@ const OrderSchema = new mongoose.Schema({
     msg: String,
     ts: { type: Date, default: Date.now }
   }],
+  /**
+   * Created -> Stores what the MX Merchant API returns from call
+   * Token -> paymentToken used in completing sale
+   * Amount -> total amount
+   * Code -> authCode sent in sale completion
+   */
+  paymentInfo: [{
+    created: Date,
+    token: String,
+    amount: Number,
+    code: String
+  }],
   updatedLast: {
     type: Date,
     default: Date.now

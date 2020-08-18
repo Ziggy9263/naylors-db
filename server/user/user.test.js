@@ -104,7 +104,7 @@ describe('## User APIs', () => {
           done();
         })
         .catch(done);
-    })
+    });
     it('should update user to admin with valid adminCode', (done) => {
       user.isAdmin = true;
       user.adminVerification = config.adminCode;

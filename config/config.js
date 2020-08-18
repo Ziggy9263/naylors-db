@@ -31,7 +31,13 @@ const envVarsSchema = Joi.object({
   SMTP_USER: Joi.string().required()
     .description('SMTP Username'),
   SMTP_PASS: Joi.string().required()
-    .description('SMTP Password')
+    .description('SMTP Password'),
+  MX_CONSUMER_KEY: Joi.string().required()
+    .description('MX Payments API Consumer Key'),
+  MX_CONSUMER_SECRET: Joi.string().required()
+    .description('MX Payments API Consumer Secret'),
+  MX_MERCHANT_ID: Joi.number()
+    .description('MX Payments API Merchant ID')
 
 }).unknown()
   .required();
@@ -56,6 +62,11 @@ const config = {
     port: envVars.SMTP_PORT,
     user: envVars.SMTP_USER,
     pass: envVars.SMTP_PASS
+  },
+  mx: {
+    consumerKey: envVars.MX_CONSUMER_KEY,
+    consumerSecret: envVars.MX_CONSUMER_SECRET,
+    merchantId: envVars.MX_MERCHANT_ID
   }
 };
 

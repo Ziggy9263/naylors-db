@@ -12,17 +12,22 @@ router.route('/')
   .get(productCtrl.list)
 
   /** POST /api/products - Create new product */
-  .post(expressJwt({ secret: config.jwtSecret }), validate(paramValidation.createProduct), productCtrl.create);
+  .post(expressJwt({ secret: config.jwtSecret }),
+    validate(paramValidation.createProduct),
+    productCtrl.create);
 
 router.route('/:tag')
   /** GET /api/products/:tag - Get product */
   .get(productCtrl.get)
 
   /** PUT /api/products/:tag - Update product */
-  .put(expressJwt({ secret: config.jwtSecret }), validate(paramValidation.updateProduct), productCtrl.update)
+  .put(expressJwt({ secret: config.jwtSecret }),
+    validate(paramValidation.updateProduct),
+    productCtrl.update)
 
   /** DELETE /api/products/:tag - Delete product */
-  .delete(expressJwt({ secret: config.jwtSecret }), productCtrl.remove);
+  .delete(expressJwt({ secret: config.jwtSecret }),
+    productCtrl.remove);
 
 /** Load product when API with tag route parameter is hit */
 router.param('tag', productCtrl.load);

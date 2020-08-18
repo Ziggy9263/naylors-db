@@ -1,7 +1,7 @@
 const User = require('./user.model');
 const uuid = require('uuid');
 const config = require('../../config/config');
-const mail = require('../helpers/mail');
+// const mail = require('../helpers/mail');
 // const { config } = require('bluebird');
 
 /**

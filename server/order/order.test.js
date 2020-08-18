@@ -127,7 +127,7 @@ describe('## Order APIs', () => {
       request(app)
         .put(`/api/orders/${order.uuid}`)
         .send(order)
-        .set('Authorization', `Bearer lsdkjfghldfjghlsds`)
+        .set('Authorization', 'Bearer lsdkjfghldfjghlsds')
         .expect(httpStatus.UNAUTHORIZED)
         .then((res) => {
           expect(res.body.message).to.equal('Unauthorized');
