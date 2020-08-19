@@ -65,6 +65,7 @@
     "winston": "2.4.1"
   },
   "devDependencies": {
+    "babel-eslint": "false10.1.0",
     "chai": "4.1.2",
     "commitizen": "^2.9.6",
     "coveralls": "^3.0.0",
@@ -73,6 +74,7 @@
     "eslint": "3.16.1",
     "eslint-config-airbnb-base": "7.1.0",
     "eslint-plugin-import": "1.16.0",
+    "eslint-scope": "false5.1.0",
     "eslint-watch": "2.1.14",
     "husky": "0.14.3",
     "istanbul": "1.1.0-alpha.1",

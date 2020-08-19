@@ -53,7 +53,7 @@ describe('## Product APIs', () => {
     category: 'Feed',
     price: 10.95,
     images: [],
-    taxExempt: undefined,
+    taxExempt: true,
     comments: 'Test test 1 2 3'
   };
 
@@ -61,7 +61,7 @@ describe('## Product APIs', () => {
     it('should fail to create a new product due to invalid token', (done) => {
       request(app)
         .post('/api/products')
-        .set('Authorization', 'Bearer lkjfhsdjlkfhg')
+        .set('Authorization', 'Bearer randomNumbersAndLetters')
         .send(product)
         .expect(httpStatus.UNAUTHORIZED)
         .then((res) => {
@@ -91,6 +91,7 @@ describe('## Product APIs', () => {
         .then((res) => {
           expect(res.body.tag).to.equal(product.tag);
           expect(res.body.name).to.equal(product.name);
+          expect(res.body.taxExempt).to.equal(true);
           product = res.body;
           done();
         })
@@ -127,7 +128,7 @@ describe('## Product APIs', () => {
     it('should fail to update product due to invalid token', (done) => {
       request(app)
         .put('/api/products/133790')
-        .set('Authorization', 'Bearer lkjfhsdjlkfhg')
+        .set('Authorization', 'Bearer randomNumbersAndLetters')
         .send(product)
         .expect(httpStatus.UNAUTHORIZED)
         .then((res) => {
@@ -194,7 +195,7 @@ describe('## Product APIs', () => {
     it('should fail to delete product due to invalid token', (done) => {
       request(app)
         .delete(`/api/products/${product.tag}`)
-        .set('Authorization', 'Bearer lksjdhgsf')
+        .set('Authorization', 'Bearer randomNumeralsAndLetters')
         .expect(httpStatus.UNAUTHORIZED)
         .then((res) => {
           expect(res.body.message).to.equal('Unauthorized');

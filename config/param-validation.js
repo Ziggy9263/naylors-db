@@ -63,7 +63,7 @@ module.exports = {
       category: Joi.string(),
       price: Joi.number().required(),
       images: Joi.array(),
-      taxExempt: Joi.string(),
+      taxExempt: Joi.boolean(),
       comments: Joi.string()
     }
   },
@@ -77,7 +77,7 @@ module.exports = {
       category: Joi.string(),
       price: Joi.number().required(),
       images: Joi.array(),
-      taxExempt: Joi.string(),
+      taxExempt: Joi.boolean(),
       comments: Joi.string()
     },
     params: {
@@ -94,7 +94,39 @@ module.exports = {
           quantity: Joi.number()
         })
       ),
-      userComments: Joi.string()
+      userComments: Joi.string(),
+      paymentInfo: {
+        cardNumber: Joi.string(),
+        expiryMonth: Joi.string(),
+        expiryYear: Joi.string(),
+        cvv: Joi.string(),
+        avsZip: Joi.string(),
+        avsStreet: Joi.string()
+      }
+    }
+  },
+  // PUT /api/orders
+  updateOrder: {
+    body: {
+      cartDetail: Joi.array().items(
+        Joi.object().keys({
+          product: Joi.number(),
+          quantity: Joi.number()
+        })
+      ).required(),
+      userComments: Joi.string(),
+      finalize: Joi.boolean(),
+      paymentInfo: {
+        cardNumber: Joi.string(),
+        expiryMonth: Joi.string(),
+        expiryYear: Joi.string(),
+        cvv: Joi.string(),
+        avsZip: Joi.string(),
+        avsStreet: Joi.string()
+      }
+    },
+    params: {
+      uuid: Joi.string().required()
     }
   }
 };

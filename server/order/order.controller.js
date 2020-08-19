@@ -1,4 +1,6 @@
 const Order = require('./order.model');
+const MX = require('../helpers/payments');
+const productCtrl = require('../product/product.controller');
 const httpStatus = require('http-status');
 const APIError = require('../helpers/APIError');
 
@@ -29,14 +31,15 @@ function load(req, res, next, uuid) {
 }
 
 /**
- * Load Order Via Tag
+ * Load Order Via UUID
  * @param {*} req
  * @param {*} res
  * @param {*} next
- * @param {string} uuid - Tag assigned upon order DB entry
+ * @param {string} uuid - UUID assigned upon order DB entry
  */
 function loadByUUID(req, res, next, uuid) {
   Order.findOne({ uuid })
+  .exec()
   .then((order) => {
     // eslint-disable-next-line no-param-reassign
     req.order = order;
@@ -65,37 +68,90 @@ function get(req, res) {
  * @property {string} req.body.comments - Administrator comments for dashboard use only.
  * @returns {Order}
  */
-function create(req, res, next) {
+async function create(req, res, next) {
   const user = req.user;
-  const order = new Order({
+  const orderData = {
     user: user._id,
     cartDetail: req.body.cartDetail,
     userComments: req.body.userComments,
     comments: req.body.comments
+  };
+  let amount = 0;
+  let payInfo = {};
+  await Promise.all(req.body.cartDetail.map(async (item) => {
+    const product = await productCtrl.loadByTag(item.product);
+    amount += item.quantity * product.price;
+  })).then(() => {
+    payInfo = { amount, ...req.body.paymentInfo };
   });
+  return await MX.authorizePayment(payInfo).then((result) => {
+    orderData.paymentInfo = {
+      created: result.created,
+      paymentToken: result.paymentToken,
+      amount: result.amount,
+      authCode: result.authCode
+    };
+    orderData.status = [{ msg: (result.status === 'Approved') ? 'Placed' : 'Error' }];
+  }).finally(async () => {
+    const order = new Order(orderData);
 
-  return order.save()
-    .then(savedOrder => res.json(savedOrder))
-    .catch(e => next(e));
+    try {
+      const savedOrder = await order.save();
+      return res.json(savedOrder);
+    } catch (e) {
+      return next(e);
+    }
+  });
 }
 
 /**
  * Update existing order
- * @property {string} req.body.uuid - The uuid of order.
- * @property {string} req.body.name - The name of order.
+ * @property {string} req.param.uuid - The uuid of order.
  * @returns {Order}
  */
-function update(req, res, next) {
+async function update(req, res, next) {
   // Notes for Dev: Do not allow update after payment complete.
   // const user = req.user;
   // if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
   const order = req.order;
   // TODO: Ensure that the only people updating are admin or the user that created it.
-  order.uuid = req.body.uuid;
-  order.cartDetail = req.body.cartDetail;
+  let amount = 0;
+  let payInfo = {};
+  if (order.cartDetail !== req.body.cartDetail) order.cartDetail = req.body.cartDetail;
+
+  await Promise.all(req.body.cartDetail.map(async (item) => {
+    const product = await productCtrl.loadByTag(item.product);
+    amount += item.quantity * product.price;
+  })).then(() => {
+    payInfo = {
+      amount,
+      authCode: order.paymentInfo[0].authCode,
+      paymentToken: order.paymentInfo[0].paymentToken
+    };
+  });
   order.userComments = req.body.userComments;
   order.comments = req.body.comments;
 
+  if (req.body.finalize) {
+    return await MX.finalizePayment(payInfo).then((result) => {
+      if (result.status === 'Approved') {
+        order.paymentInfo.push({
+          created: result.created,
+          paymentToken: result.paymentToken,
+          amount: result.amount,
+          authCode: result.authCode
+        });
+      }
+      order.status.push({ msg: (result.status === 'Approved') ? 'Completed' : result });
+    }).finally(async () => {
+      try {
+        const savedOrder = await order.save();
+        return res.json(savedOrder);
+      } catch (e) {
+        return next(e);
+      }
+    });
+  }
   return order.save()
     .then(savedOrder => res.json(savedOrder))
     .catch(e => next(e));
@@ -120,6 +176,8 @@ function list(req, res, next) {
  */
 function remove(req, res, next) {
   const user = req.user;
+  /* TODO: Instead of blocking non-admin, unprivileged users should be able to cancel orders
+  *  but not necessarily delete them. */
   if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
   const order = req.order;
   return order.remove()

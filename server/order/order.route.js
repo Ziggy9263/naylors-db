@@ -22,7 +22,7 @@ router.route('/:uuid')
 
   /** PUT /api/orders/:uuid - Update order */
   .put(expressJwt({ secret: config.jwtSecret }),
-    // validate(paramValidation.updateOrder),
+    validate(paramValidation.updateOrder),
     orderCtrl.update)
 
   /** DELETE /api/orders/:uuid - Delete order */

@@ -33,16 +33,16 @@ const OrderSchema = new mongoose.Schema({
     ts: { type: Date, default: Date.now }
   }],
   /**
-   * Created -> Stores what the MX Merchant API returns from call
-   * Token -> paymentToken used in completing sale
-   * Amount -> total amount
-   * Code -> authCode sent in sale completion
+   * created - Stores what the MX Merchant API returns from call
+   * paymentToken - reference MX merchant API
+   * Amount - total amount
+   * authCode - authCode sent in sale completion
    */
   paymentInfo: [{
     created: Date,
-    token: String,
+    paymentToken: String,
     amount: Number,
-    code: String
+    authCode: String
   }],
   updatedLast: {
     type: Date,
@@ -59,6 +59,8 @@ const OrderSchema = new mongoose.Schema({
     type: String,
     default: undefined
   }
+}, {
+  usePushEach: true
 });
 
 /**
@@ -100,4 +102,4 @@ OrderSchema.statics = {
 /**
  * @typedef Order
  */
-module.exports = mongoose.model('Order', OrderSchema);
+module.exports = mongoose.model('Order', OrderSchema, 'orders');

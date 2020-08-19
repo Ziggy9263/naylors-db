@@ -43,22 +43,47 @@ describe('## Order APIs', () => {
         privilegedAuthHeader = res.body.token;
       })
       .catch(done);
+    // Make a product to use
+    request(app)
+      .post('/api/products/')
+      .set('Authorization', `Bearer ${privilegedAuthHeader}`)
+      .send({
+        tag: '133791',
+        name: 'Scratch',
+        description: 'For Scratching Chickens',
+        category: 'Feed',
+        price: 10.95,
+        images: [],
+        taxExempt: true
+      })
+      .expect(httpStatus.OK)
+      .then(() => {
+      })
+      .catch(done);
     done();
   });
 
   let order = {
     cartDetail: [{
-      product: 133790,
+      product: 133791,
       quantity: 3
     }],
-    userComments: 'Test test 1 2 3'
+    userComments: 'Test test 1 2 3',
+    paymentInfo: {
+      cardNumber: '4242 4242 4242 4242',
+      expiryMonth: '05',
+      expiryYear: '22',
+      cvv: '432',
+      avsZip: '78408',
+      avsStreet: '102 Old Robstown Road'
+    }
   };
 
   describe('# POST /api/orders', () => {
     it('should fail to create a new order due to invalid token', (done) => {
       request(app)
         .post('/api/orders')
-        .set('Authorization', 'Bearer lkjfhsdjlkfhg')
+        .set('Authorization', 'Bearer randomLettersAndNumbers')
         .send(order)
         .expect(httpStatus.UNAUTHORIZED)
         .then((res) => {
@@ -76,6 +101,11 @@ describe('## Order APIs', () => {
         .then((res) => {
           expect(res.body.cartDetail);
           expect(res.body.userComments).to.equal(order.userComments);
+          expect(res.body.paymentInfo.created);
+          expect(res.body.paymentInfo.paymentToken);
+          expect(res.body.paymentInfo.amount);
+          expect(res.body.paymentInfo.authCode);
+          expect(res.body.status[0].msg).to.equal('Placed');
           order = res.body;
           done();
         })
@@ -113,7 +143,7 @@ describe('## Order APIs', () => {
     it('should fail to update order due to invalid token', (done) => {
       request(app)
         .put(`/api/orders/${order.uuid}`)
-        .set('Authorization', 'Bearer lkjfhsdjlkfhg')
+        .set('Authorization', 'Bearer randomNumbersAndLetters')
         .send(order)
         .expect(httpStatus.UNAUTHORIZED)
         .then((res) => {
@@ -127,7 +157,7 @@ describe('## Order APIs', () => {
       request(app)
         .put(`/api/orders/${order.uuid}`)
         .send(order)
-        .set('Authorization', 'Bearer lsdkjfghldfjghlsds')
+        .set('Authorization', 'Bearer randomLettersAndNumbers')
         .expect(httpStatus.UNAUTHORIZED)
         .then((res) => {
           expect(res.body.message).to.equal('Unauthorized');
@@ -139,13 +169,32 @@ describe('## Order APIs', () => {
       order.userComments = "Actually, I'll be there at around 3 on Thursday.";
       request(app)
         .put(`/api/orders/${order.uuid}`)
-        .send(order)
+        .send({ cartDetail: order.cartDetail, userComments: order.userComments })
         .set('Authorization', `Bearer ${unprivilegedAuthHeader}`)
         .expect(httpStatus.OK)
         .then((res) => {
           expect(res.body.uuid).to.equal(order.uuid);
           expect(res.body.cartDetail);
           expect(res.body.userComments).to.equal(order.userComments);
+          done();
+        })
+        .catch(done);
+    });
+    it('should finalize payment', (done) => {
+      order.finalize = true;
+      const finishedOrder = {
+        cartDetail: order.cartDetail,
+        finalize: true
+      };
+      request(app)
+        .put(`/api/orders/${order.uuid}`)
+        .send(finishedOrder)
+        .set('Authorization', `Bearer ${unprivilegedAuthHeader}`)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body.uuid).to.equal(order.uuid);
+          expect(res.body.cartDetail);
+          expect(res.body.status.pop().msg).to.equal('Completed');
           done();
         })
         .catch(done);
@@ -181,7 +230,7 @@ describe('## Order APIs', () => {
     it('should fail to delete order due to invalid token', (done) => {
       request(app)
         .delete(`/api/orders/${order.uuid}`)
-        .set('Authorization', 'Bearer lksjdhgsf')
+        .set('Authorization', 'Bearer randomNumbersAndLetters')
         .expect(httpStatus.UNAUTHORIZED)
         .then((res) => {
           expect(res.body.message).to.equal('Unauthorized');
@@ -218,7 +267,6 @@ describe('## Order APIs', () => {
         .then((res) => {
           expect(res.body.uuid).to.equal(order.uuid);
           expect(res.body.cartDetail);
-          expect(res.body.userComments).to.equal(order.userComments);
           done();
         })
         .catch(done);

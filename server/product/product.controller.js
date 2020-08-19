@@ -31,19 +31,13 @@ function load(req, res, next, tag) {
 
 /**
  * Load Product Via Tag
- * @param {*} req
- * @param {*} res
- * @param {*} next
- * @param {string} tag - Tag assigned upon product DB entry
+ * @param {Number} tag - Tag assigned upon product DB entry
+ * @returns {Promise<Object|APIError>}
  */
-function loadByTag(req, res, next, tag) {
-  Product.findOne({ tag })
-  .then((product) => {
-    // eslint-disable-next-line no-param-reassign
-    req.product = product;
-    return next();
-  })
-  .catch(e => next(e));
+function loadByTag(tag) {
+  return Product.get(tag)
+  .then(product => Promise.resolve(product))
+  .catch(e => Promise.reject(new APIError(e, httpStatus.INTERNAL_SERVER_ERROR)));
 }
 
 /**

@@ -1,5 +1,6 @@
-const Promise = require('bluebird');
 const mongoose = require('mongoose');
+const Promise = require('bluebird');
+mongoose.Promise = require('bluebird');
 const httpStatus = require('http-status');
 const APIError = require('../helpers/APIError');
 
@@ -40,8 +41,8 @@ const ProductSchema = new mongoose.Schema({
     default: Date.now
   },
   taxExempt: {
-    type: String,
-    default: undefined
+    type: Boolean,
+    default: false
   },
   comments: {
     type: String,
@@ -62,11 +63,11 @@ ProductSchema.statics = {
     return this.findOne({ tag })
       .exec()
       .then((product) => {
-        if (product) {
-          return product;
+        if (!product) {
+          const err = new APIError('No such product exists!', httpStatus.NOT_FOUND);
+          return Promise.reject(err);
         }
-        const err = new APIError('No such product exists!', httpStatus.NOT_FOUND);
-        return Promise.reject(err);
+        return Promise.resolve(product);
       });
   },
 
@@ -88,4 +89,4 @@ ProductSchema.statics = {
 /**
  * @typedef Product
  */
-module.exports = mongoose.model('Product', ProductSchema);
+module.exports = mongoose.model('Product', ProductSchema, 'products');

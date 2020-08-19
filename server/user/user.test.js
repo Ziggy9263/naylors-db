@@ -26,7 +26,7 @@ describe('## User APIs', () => {
   let user = {
     email: 'kk123@gmail.com',
     phone: '1234567890',
-    password: 'IAMaBOYSCOUT',
+    password: 'IAMaBoyScout',
     name: 'Jerry Smith'
   };
 

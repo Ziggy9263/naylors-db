@@ -1,5 +1,9 @@
 const axios = require('axios').default;
 const config = require('../../config/config.js');
+/**
+ * Created for the MX Merchant API for Auth Only transaction
+ * https://developer.mxmerchant.com/docs/making-an-authonly-transaction-and-completing-the-sale
+ */
 
 class PaymentHandler {
   constructor() {
@@ -13,6 +17,7 @@ class PaymentHandler {
    * @return {object|error}
    */
   authorizePayment(payData) {
+    if (payData === {}) return new Error('Empty Payment Info');
     return axios({
       method: 'POST',
       url: 'https://sandbox.api.mxmerchant.com/checkout/v3/payment',
@@ -29,7 +34,7 @@ class PaymentHandler {
         amount: payData.amount,
         authOnly: true,
         cardAccount: {
-          number: payData.number,
+          number: payData.cardNumber,
           expiryMonth: payData.expiryMonth,
           expiryYear: payData.expiryYear,
           cvv: payData.cvv,
@@ -43,6 +48,7 @@ class PaymentHandler {
     .catch(error => new Error(error));
   }
   finalizePayment(finData) {
+    if (finData === {}) return new Error('Empty Payment Info');
     return axios({
       method: 'POST',
       url: 'https://sandbox.api.mxmerchant.com/checkout/v3/payment',
@@ -55,11 +61,11 @@ class PaymentHandler {
       },
       data: {
         merchantId: this.mx.merchantId,
-        paymentToken: finData.paymentToken,
         tenderType: 'Card',
         amount: finData.amount,
-        authCode: finData.authCode,
         authOnly: false,
+        paymentToken: finData.paymentToken,
+        authCode: finData.authCode
       },
       responseType: 'json'
     })
