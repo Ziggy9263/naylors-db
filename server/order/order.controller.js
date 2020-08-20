@@ -83,7 +83,7 @@ async function create(req, res, next) {
     amount += item.quantity * product.price;
   })).then(() => {
     payInfo = { amount, ...req.body.paymentInfo };
-  });
+  }).catch((e) => new APIError(`Product Resolve Error: ${e}`, httpStatus.BAD_REQUEST));
   return await MX.authorizePayment(payInfo).then((result) => {
     orderData.paymentInfo = {
       created: result.created,
@@ -91,7 +91,7 @@ async function create(req, res, next) {
       amount: result.amount,
       authCode: result.authCode
     };
-    orderData.status = [{ msg: (result.status === 'Approved') ? 'Placed' : 'Error' }];
+    orderData.status = [{ msg: (result.status === 'Approved') ? 'Placed' : result }];
   }).finally(async () => {
     const order = new Order(orderData);
 

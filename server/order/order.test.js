@@ -13,6 +13,7 @@ chai.config.includeStack = true;
 after((done) => {
   // clean up for next tests
   mongoose.connection.db.collection('orders').deleteMany({ });
+  mongoose.connection.db.collection('products').deleteOne({ tag: '133791'})
   done();
 });
 
@@ -44,22 +45,15 @@ describe('## Order APIs', () => {
       })
       .catch(done);
     // Make a product to use
-    request(app)
-      .post('/api/products/')
-      .set('Authorization', `Bearer ${privilegedAuthHeader}`)
-      .send({
-        tag: '133791',
-        name: 'Scratch',
-        description: 'For Scratching Chickens',
-        category: 'Feed',
-        price: 10.95,
-        images: [],
-        taxExempt: true
-      })
-      .expect(httpStatus.OK)
-      .then(() => {
-      })
-      .catch(done);
+    mongoose.connection.db.collection('products').insert({
+      tag: '133791',
+      name: 'Scratch',
+      description: 'For Scratching Chickens',
+      category: 'Feed',
+      price: 10.95,
+      images: [],
+      taxExempt: true
+    });
     done();
   });
 
