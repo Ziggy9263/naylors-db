@@ -100,8 +100,8 @@ describe('## Order APIs', () => {
         .set('Authorization', `Bearer ${unprivilegedAuthHeader}`)
         .send(order)
         .expect(httpStatus.OK)
-        .then(async (res) => {
-          order = await res.body;
+        .then((res) => {
+          order = res.body;
           expect(order.cartDetail);
           expect(order.userComments).to.equal(order.userComments);
           expect(order.paymentInfo.pop().created);
