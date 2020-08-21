@@ -41,6 +41,26 @@ function loadByTag(tag) {
 }
 
 /**
+ * Returns price * quantity
+ * @param {Object[]} cartDetail - An array of objects with product tag and quantity
+ * @returns {Promise}
+ */
+function getSubTotal(cartDetail) {
+  const subtotal = cartDetail.map((item) => {
+    const quantity = item.quantity;
+    return Product.get(item.product)
+      .then(product => quantity * product.price)
+      .catch(e => e);
+  });
+  return Promise.all(subtotal).then((value) => {
+    if (!value.every(item => typeof item === 'number')) {
+      return Promise.reject(new APIError('Product Not Found', httpStatus.BAD_REQUEST));
+    }
+    return Promise.resolve(value.reduce((a, b) => a + b, 0));
+  });
+}
+
+/**
  * Get product
  * @returns {Product}
  */
@@ -129,4 +149,4 @@ function remove(req, res, next) {
     .catch(e => next(e));
 }
 
-module.exports = { load, loadByTag, get, create, update, list, remove };
+module.exports = { load, loadByTag, getSubTotal, get, create, update, list, remove };

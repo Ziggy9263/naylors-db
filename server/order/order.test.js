@@ -11,9 +11,6 @@ chai.config.includeStack = true;
  * root level hooks
  */
 after((done) => {
-  // clean up for next tests
-  mongoose.connection.db.collection('orders').deleteMany({ });
-  mongoose.connection.db.collection('products').deleteOne({ tag: '133791'})
   done();
 });
 
@@ -46,20 +43,31 @@ describe('## Order APIs', () => {
       .catch(done);
     // Make a product to use
     mongoose.connection.db.collection('products').insert({
-      tag: '133791',
+      tag: '133792',
       name: 'Scratch',
       description: 'For Scratching Chickens',
       category: 'Feed',
       price: 10.95,
       images: [],
       taxExempt: true
-    });
+    })
+    .then((res) => {
+      expect(res.result.ok);
+    })
+    .catch(done);
+    done();
+  });
+  after((done) => {
+    // clean up for next tests
+    mongoose.connection.db.collection('orders').deleteMany({ });
+    mongoose.connection.db.collection('products').deleteOne({ tag: '133791' });
+    mongoose.connection.db.collection('products').deleteOne({ tag: '133792' });
     done();
   });
 
   let order = {
     cartDetail: [{
-      product: 133791,
+      product: 133792,
       quantity: 3
     }],
     userComments: 'Test test 1 2 3',
@@ -92,15 +100,15 @@ describe('## Order APIs', () => {
         .set('Authorization', `Bearer ${unprivilegedAuthHeader}`)
         .send(order)
         .expect(httpStatus.OK)
-        .then((res) => {
-          expect(res.body.cartDetail);
-          expect(res.body.userComments).to.equal(order.userComments);
-          expect(res.body.paymentInfo.created);
-          expect(res.body.paymentInfo.paymentToken);
-          expect(res.body.paymentInfo.amount);
-          expect(res.body.paymentInfo.authCode);
-          expect(res.body.status[0].msg).to.equal('Placed');
-          order = res.body;
+        .then(async (res) => {
+          order = await res.body;
+          expect(order.cartDetail);
+          expect(order.userComments).to.equal(order.userComments);
+          expect(order.paymentInfo.pop().created);
+          expect(order.paymentInfo.pop().paymentToken);
+          expect(order.paymentInfo.pop().amount);
+          expect(order.paymentInfo.pop().authCode);
+          expect(order.status.pop().msg).to.equal('Placed');
           done();
         })
         .catch(done);

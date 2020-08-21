@@ -16,7 +16,7 @@ const validUserCredentials = {
 };
 const invalidUserCredentials = {
   email: 'BigZ93@gmail.com',
-  password: 'IDontKnow'
+  password: 'IDoNotKnow'
 };
 let verification;
 

@@ -76,32 +76,38 @@ async function create(req, res, next) {
     userComments: req.body.userComments,
     comments: req.body.comments
   };
-  let amount = 0;
-  let payInfo = {};
-  await Promise.all(req.body.cartDetail.map(async (item) => {
-    const product = await productCtrl.loadByTag(item.product);
-    amount += item.quantity * product.price;
-  })).then(() => {
-    payInfo = { amount, ...req.body.paymentInfo };
-  }).catch((e) => new APIError(`Product Resolve Error: ${e}`, httpStatus.BAD_REQUEST));
-  return await MX.authorizePayment(payInfo).then((result) => {
-    orderData.paymentInfo = {
-      created: result.created,
-      paymentToken: result.paymentToken,
-      amount: result.amount,
-      authCode: result.authCode
-    };
-    orderData.status = [{ msg: (result.status === 'Approved') ? 'Placed' : result }];
-  }).finally(async () => {
-    const order = new Order(orderData);
+  return productCtrl.getSubTotal(orderData.cartDetail)
+    .then(async (subtotal) => {
+      const tax = subtotal * 0.0825; // Add in proper tax info, perhaps rewrite subtotal to total
+      const amount = subtotal + tax;
+      const payInfo = {
+        amount: amount.toFixed(2),
+        cardNumber: req.body.paymentInfo.cardNumber,
+        expiryMonth: req.body.paymentInfo.expiryMonth,
+        expiryYear: req.body.paymentInfo.expiryYear,
+        cvv: req.body.paymentInfo.cvv,
+        avsZip: req.body.paymentInfo.avsZip,
+        avsStreet: req.body.paymentInfo.avsStreet
+      };
+      return await MX.authorizePayment(payInfo).then((result) => {
+        orderData.paymentInfo = {
+          created: result.created,
+          paymentToken: result.paymentToken,
+          amount: result.amount,
+          authCode: result.authCode
+        };
+        orderData.status = [{ msg: (result.status === 'Approved') ? 'Placed' : result }];
+      }).finally(async () => {
+        const order = new Order(orderData);
 
-    try {
-      const savedOrder = await order.save();
-      return res.json(savedOrder);
-    } catch (e) {
-      return next(e);
-    }
-  });
+        try {
+          const savedOrder = await order.save();
+          return res.json(savedOrder);
+        } catch (e) {
+          return next(e);
+        }
+      });
+    }).catch(e => e);
 }
 
 /**

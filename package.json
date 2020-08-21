@@ -1,8 +1,8 @@
 {
   "name": "em6rest-api-2",
   "version": "5.0.0",
-  "description": "A Boilerplate application for building REST APIs using express, mongoose in ES6 with code coverage",
-  "author": "Kunal Kapadia <kunalkapadia12@gmail.com>",
+  "description": "Full featured backend API for Naylor's Farm and Ranch Supply's online ordering",
+  "author": "J. Zane Cook <jason.zane.cook@gmail.com>",
   "main": "index.js",
   "private": false,
   "engines": {
@@ -16,7 +16,7 @@
     "lint": "esw *.js server config --color",
     "lint:watch": "yarn lint -- --watch",
     "precommit": "yarn lint && yarn test",
-    "test": "cross-env NODE_ENV=test ./node_modules/.bin/mocha --ui bdd --reporter spec --colors server --recursive",
+    "test": "cross-env NODE_ENV=test ./node_modules/.bin/mocha --ui bdd --reporter spec --colors server --recursive --timeout=10000",
     "test:watch": "yarn test -- --watch",
     "test:coverage": "cross-env NODE_ENV=test ./node_modules/.bin/istanbul cover _mocha -- --ui bdd --reporter spec --colors server --recursive",
     "test:check-coverage": "yarn test:coverage && istanbul check-coverage",
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:KunalKapadia/em6rest-api-2.git"
+    "url": "git@github.com:Ziggy9263/naylors-db.git"
   },
   "keywords": [
     "express",

@@ -45,7 +45,7 @@ class PaymentHandler {
       responseType: 'json'
     })
     .then(res => res.data)
-    .catch(error => new Error(error));
+    .catch(error => error);
   }
   finalizePayment(finData) {
     if (finData === {}) return new Error('Empty Payment Info');
