@@ -40,6 +40,7 @@
     "boilerplate"
   ],
   "dependencies": {
+    "@babel/core": "false7.11.4",
     "axios": "false0.19.2",
     "bcryptjs": "false2.4.3",
     "bluebird": "3.5.1",

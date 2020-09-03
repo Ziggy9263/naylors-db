@@ -24,6 +24,8 @@ const OrderSchema = new mongoose.Schema({
     product: Number,
     quantity: Number
   }],
+  subtotal: Number,
+  tax: Number,
   /**
    * Order Status details:
    *   Message for client to use, e.g. "Placed", "Completed", "Cancelled", etc.
@@ -41,6 +43,7 @@ const OrderSchema = new mongoose.Schema({
   paymentInfo: [{
     created: Date,
     paymentToken: String,
+    id: Number,
     amount: Number,
     authCode: String
   }],

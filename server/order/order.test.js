@@ -10,8 +10,17 @@ chai.config.includeStack = true;
 /**
  * root level hooks
  */
-after((done) => {
-  done();
+before(() => {
+  // Make a product to use
+  mongoose.connection.db.collection('products').insert({
+    tag: '133792',
+    name: 'Scratch',
+    description: 'For Scratching Chickens',
+    category: 'Feed',
+    price: 10.95,
+    images: [],
+    taxExempt: true
+  })
 });
 
 describe('## Order APIs', () => {
@@ -41,20 +50,6 @@ describe('## Order APIs', () => {
         privilegedAuthHeader = res.body.token;
       })
       .catch(done);
-    // Make a product to use
-    mongoose.connection.db.collection('products').insert({
-      tag: '133792',
-      name: 'Scratch',
-      description: 'For Scratching Chickens',
-      category: 'Feed',
-      price: 10.95,
-      images: [],
-      taxExempt: true
-    })
-    .then((res) => {
-      expect(res.result.ok);
-    })
-    .catch(done);
     done();
   });
   after((done) => {
@@ -80,6 +75,7 @@ describe('## Order APIs', () => {
       avsStreet: '102 Old Robstown Road'
     }
   };
+  let uuid;
 
   describe('# POST /api/orders', () => {
     it('should fail to create a new order due to invalid token', (done) => {
@@ -94,21 +90,18 @@ describe('## Order APIs', () => {
         })
         .catch(done);
     });
-    it('should create a new order', (done) => {
-      request(app)
+    it('should create a new order', async (done) => {
+      await request(app)
         .post('/api/orders')
         .set('Authorization', `Bearer ${unprivilegedAuthHeader}`)
         .send(order)
         .expect(httpStatus.OK)
         .then((res) => {
-          order = res.body;
-          expect(order.cartDetail);
-          expect(order.userComments).to.equal(order.userComments);
-          expect(order.paymentInfo.pop().created);
-          expect(order.paymentInfo.pop().paymentToken);
-          expect(order.paymentInfo.pop().amount);
-          expect(order.paymentInfo.pop().authCode);
-          expect(order.status.pop().msg).to.equal('Placed');
+          expect(res.body.cartDetail[0]).to.have.keys(["_id", "product", "quantity"]);
+          expect(res.body.userComments).to.equal(order.userComments);
+          expect(res.body.subtotal).to.equal(32.85);
+          expect(res.body.tax).to.equal(2.71);
+          uuid = res.body.uuid;
           done();
         })
         .catch(done);
@@ -118,7 +111,7 @@ describe('## Order APIs', () => {
   describe('# GET /api/orders/:uuid', () => {
     it('should get order details', (done) => {
       request(app)
-        .get(`/api/orders/${order.uuid}`)
+        .get(`/api/orders/${uuid}`)
         .expect(httpStatus.OK)
         .then((res) => {
           expect(res.body.uuid).to.equal(order.uuid);
@@ -182,7 +175,7 @@ describe('## Order APIs', () => {
         })
         .catch(done);
     });
-    it('should finalize payment', (done) => {
+    /*it('should finalize payment', (done) => {
       order.finalize = true;
       const finishedOrder = {
         cartDetail: order.cartDetail,
@@ -200,7 +193,7 @@ describe('## Order APIs', () => {
           done();
         })
         .catch(done);
-    });
+    });*/
   });
 
   describe('# GET /api/orders/', () => {

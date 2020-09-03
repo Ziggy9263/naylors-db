@@ -1,6 +1,7 @@
 const Order = require('./order.model');
 const MX = require('../helpers/payments');
 const productCtrl = require('../product/product.controller');
+const User = require('../user/user.model');
 const httpStatus = require('http-status');
 const APIError = require('../helpers/APIError');
 
@@ -69,45 +70,78 @@ function get(req, res) {
  * @returns {Order}
  */
 async function create(req, res, next) {
-  const user = req.user;
-  const orderData = {
-    user: user._id,
-    cartDetail: req.body.cartDetail,
-    userComments: req.body.userComments,
-    comments: req.body.comments
-  };
-  return productCtrl.getSubTotal(orderData.cartDetail)
-    .then(async (subtotal) => {
-      const tax = subtotal * 0.0825; // Add in proper tax info, perhaps rewrite subtotal to total
-      const amount = subtotal + tax;
-      const payInfo = {
-        amount: amount.toFixed(2),
-        cardNumber: req.body.paymentInfo.cardNumber,
-        expiryMonth: req.body.paymentInfo.expiryMonth,
-        expiryYear: req.body.paymentInfo.expiryYear,
-        cvv: req.body.paymentInfo.cvv,
-        avsZip: req.body.paymentInfo.avsZip,
-        avsStreet: req.body.paymentInfo.avsStreet
-      };
-      return await MX.authorizePayment(payInfo).then((result) => {
-        orderData.paymentInfo = {
-          created: result.created,
-          paymentToken: result.paymentToken,
-          amount: result.amount,
-          authCode: result.authCode
-        };
-        orderData.status = [{ msg: (result.status === 'Approved') ? 'Placed' : result }];
-      }).finally(async () => {
-        const order = new Order(orderData);
+  var orderData = {};
+  let calcs = {};
+  try {
+    calcs = await productCtrl.getTaxInfo(req.body.cartDetail)
+      .then(tax => tax).catch(e => new Error(e));
+    orderData = {
+      user: await User.findOne({ email: req.user.email}).exec().then(u => u._doc._id).catch(e => new Error(e)),
+      cartDetail: req.body.cartDetail,
+      userComments: req.body.userComments,
+      comments: req.body.comments,
+      subtotal: calcs.subtotal,
+      tax: calcs.tax
+    };
+  } catch(e) { next(new APIError(e, httpStatus.BAD_REQUEST)) };
 
-        try {
-          const savedOrder = await order.save();
-          return res.json(savedOrder);
-        } catch (e) {
-          return next(e);
-        }
-      });
-    }).catch(e => e);
+  const payInfo = {
+    amount: calcs.total,
+    cardNumber: req.body.paymentInfo.cardNumber,
+    expiryMonth: req.body.paymentInfo.expiryMonth,
+    expiryYear: req.body.paymentInfo.expiryYear,
+    cvv: req.body.paymentInfo.cvv,
+    avsZip: req.body.paymentInfo.avsZip,
+    avsStreet: req.body.paymentInfo.avsStreet
+  };
+  await MX.authorizePayment(payInfo).then((result) => {
+    orderData.paymentInfo = {
+      created: result.created,
+      paymentToken: result.paymentToken,
+      id: result.id,
+      amount: result.amount,
+      authCode: result.authCode
+    };
+    orderData.status = [{ msg: (result.status === 'Approved') ? 'Placed' : result }];
+  });
+
+  const order = new Order(orderData);
+
+  await order.save()
+    .then((savedOrder) => {
+      res.json(savedOrder);
+    })
+    .catch((e) => next(e));
+}
+
+/**
+ * Checks status array and returns object with booleans for status.
+ * @param {array} status - Status field from order Model
+ */
+async function checkStatus(status) {
+  var s = {
+    authorized: false,
+    paid: false,
+    refunded: false,
+    cancelled: false
+  }
+  await status.map((val) => {
+    switch(val.msg) {
+      case "Placed":
+        s.authorized = true;
+        break;
+      case "Approved":
+        s.paid = true;
+        break;
+      case "Partial Refund":
+        s.refunded = true;
+        break;
+      case "Cancelled":
+        s.cancelled = true;
+        break;
+    }
+  });
+  return s;
 }
 
 /**
@@ -116,11 +150,27 @@ async function create(req, res, next) {
  * @returns {Order}
  */
 async function update(req, res, next) {
-  // Notes for Dev: Do not allow update after payment complete.
-  // const user = req.user;
-  // if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
+  // TODO: Secure access to admin and owner of order.
   const order = req.order;
-  // TODO: Ensure that the only people updating are admin or the user that created it.
+  var status = await checkStatus(order.status);
+  let finalize = (req.body.finalize && !status.paid) ? true : false;
+  var orderData = {};
+  var calcs = { new: {}, old: {}, diff: false };
+  try {
+    calcs.new = await productCtrl.getTaxInfo(req.body.cartDetail)
+      .then(detail => detail).catch(e => new Error(e));
+    calcs.old = await productCtrl.getTaxInfo(order.cartDetail)
+      .then(detail => detail).catch(e => new Error(e));
+  if (calcs.new !== calcs.old) calcs.diff = true;
+  } catch(e) { next(new APIError(e, httpStatus.BAD_REQUEST)) };
+    /**
+     * Must ensure that payment has not been completed, if it has:
+     * - Use the partial refund function from payments.js
+     * And if it has not:
+     * - Change order in saved model, no need to call to MX API
+     * However, if finalize param is true:
+     * - Change order in saved model and finalize with new cart
+     */
   let amount = 0;
   let payInfo = {};
   if (order.cartDetail !== req.body.cartDetail) order.cartDetail = req.body.cartDetail;
@@ -182,13 +232,13 @@ function list(req, res, next) {
  */
 function remove(req, res, next) {
   const user = req.user;
-  /* TODO: Instead of blocking non-admin, unprivileged users should be able to cancel orders
-  *  but not necessarily delete them. */
-  if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
   const order = req.order;
-  return order.remove()
-    .then(deletedOrder => res.json(deletedOrder))
-    .catch(e => next(e));
+  await
+  if(user.isAdmin) {
+    return order.remove()
+      .then(deletedOrder => res.json(deletedOrder))
+      .catch(e => next(e));
+  }
 }
 
 module.exports = { load, loadByUUID, get, create, update, list, remove };

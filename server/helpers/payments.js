@@ -72,6 +72,55 @@ class PaymentHandler {
     .then(res => res.data)
     .catch(error => new Error(error));
   }
+  refundPartial(payData) {
+    if (payData === {}) return new Error('Empty Payment Data');
+    var data = {
+      merchantId: this.mx.merchantId,
+      tenderType: 'Card',
+      amount: payData.amount
+    }
+    if (payData.paymentToken) data.paymentToken = payData.paymentToken;
+    if (payData.cardNumber) data.cardAccount = {
+      number: payData.cardNumber,
+      expiryMonth: payData.expiryMonth,
+      expiryYear: payData.expiryYear,
+      cvv: payData.cvv,
+      avsZip: payData.avsZip,
+      avsStreet: payData.avsStreet
+    };
+    return axios({
+      method: 'POST',
+      url: 'https://sandbox.api.mxmerchant.com/checkout/v3/payment',
+      headers: {
+        Authorization: `Basic ${this.auth}`,
+        'content-type': 'application/json'
+      },
+      params: {
+        echo: 'true'
+      },
+      data,
+      responseType: 'json'
+    })
+    .then(res => res.data)
+    .catch(error => error);
+  }
+  refundFull(paymentId) {
+    if (paymentId === undefined) return new Error('Payment ID Required');
+    return axios({
+      method: 'DELETE',
+      url: `https://sandbox.api.mxmerchant.com/checkout/v3/payment/${paymentId}`,
+      headers: {
+        Authorization: `Basic ${this.auth}`,
+        'content-type': 'application/json'
+      },
+      params: {
+        force: 'true'
+      },
+      responseType: 'json'
+    })
+    .then(res => res.data)
+    .catch(error => error);
+  }
 }
 
 module.exports = new PaymentHandler();

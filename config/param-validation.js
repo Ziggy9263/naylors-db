@@ -92,7 +92,7 @@ module.exports = {
         Joi.object().keys({
           product: Joi.number(),
           quantity: Joi.number()
-        })
+        }).required()
       ),
       userComments: Joi.string(),
       paymentInfo: {

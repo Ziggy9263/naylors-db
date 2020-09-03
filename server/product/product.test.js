@@ -112,9 +112,9 @@ describe('## Product APIs', () => {
         .catch(done);
     });
 
-    it('should report error with message - Not found, when product does not exists', (done) => {
-      request(app)
-        .get('/api/products/133791')
+    it('should report error with message - Not found, when product does not exists', async (done) => {
+      await request(app)
+        .get('/api/products/921039')
         .expect(httpStatus.NOT_FOUND)
         .then((res) => {
           expect(res.body.message).to.equal('Not Found');

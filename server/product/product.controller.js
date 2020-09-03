@@ -60,6 +60,27 @@ function getSubTotal(cartDetail) {
   });
 }
 
+function getTaxInfo(cartDetail) {
+  const taxInfo = cartDetail.map((item) => {
+    return Product.get(item.product)
+      .then((product) => { return { taxExempt: product.taxExempt, price: product.price, quantity: item.quantity }; })
+      .catch(e => e);
+  });
+  return Promise.all(taxInfo).then((value) => {
+    console.log(value);
+    if (!value.every(item => typeof item.taxExempt === 'boolean')) {
+      return Promise.reject(new APIError('Product Not Found', httpStatus.BAD_REQUEST));
+    }
+    return Promise.resolve(value.reduce((a, b) => {
+      tax = ((!a.taxExempt) ? Math.round(((a.price * a.quantity) * 0.0825) * 1e2) / 1e2 : 0)
+        + ((!b.taxExempt) ? Math.round(((b.price * b.quantity) * 0.0825) * 1e2) / 1e2 : 0);
+      subtotal = Math.round(((a.price * a.quantity) + (b.price * b.quantity)) * 1e2) / 1e2;
+      total = tax + subtotal;
+      return { tax, subtotal, total }
+    })).then((result) => { console.log(result) ; return result; });
+  })
+}
+
 /**
  * Get product
  * @returns {Product}
@@ -149,4 +170,4 @@ function remove(req, res, next) {
     .catch(e => next(e));
 }
 
-module.exports = { load, loadByTag, getSubTotal, get, create, update, list, remove };
+module.exports = { load, loadByTag, getSubTotal, getTaxInfo, get, create, update, list, remove };
