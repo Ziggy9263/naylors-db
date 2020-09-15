@@ -71,13 +71,23 @@ function getTaxInfo(cartDetail) {
     if (!value.every(item => typeof item.taxExempt === 'boolean')) {
       return Promise.reject(new APIError('Product Not Found', httpStatus.BAD_REQUEST));
     }
-    return Promise.resolve(value.reduce((a, b) => {
-      tax = ((!a.taxExempt) ? Math.round(((a.price * a.quantity) * 0.0825) * 1e2) / 1e2 : 0)
-        + ((!b.taxExempt) ? Math.round(((b.price * b.quantity) * 0.0825) * 1e2) / 1e2 : 0);
-      subtotal = Math.round(((a.price * a.quantity) + (b.price * b.quantity)) * 1e2) / 1e2;
-      total = tax + subtotal;
-      return { tax, subtotal, total }
-    })).then((result) => { console.log(result) ; return result; });
+    console.log(`getTaxInfo - value: ${JSON.stringify(value)}\ngetTaxInfo - value.length: ${value.length}`);
+    if (value.length === 1) {
+      tax = ((value[0].taxExempt) ? Math.round(((value[0].price * value[0].quantity) * 0.0825) * 1e2) / 1e2 : 0);
+      subtotal = Math.round((value[0].price * value[0].quantity) * 1e2) / 1e2;
+      total = Math.round((tax + subtotal) * 1e2) / 1e2;
+      return Promise.resolve({ tax, subtotal, total})
+        .then((result) => { console.log(`getTaxInfo - l1: ${JSON.stringify(result)}`); return result; });
+    }
+    if (value.length >= 1) {
+      return Promise.resolve(value.reduce((a, b) => {
+        tax = ((!a.taxExempt) ? Math.round(((a.price * a.quantity) * 0.0825) * 1e2) / 1e2 : 0)
+          + ((!b.taxExempt) ? Math.round(((b.price * b.quantity) * 0.0825) * 1e2) / 1e2 : 0);
+        subtotal = Math.round(((a.price * a.quantity) + (b.price * b.quantity)) * 1e2) / 1e2;
+        total = Math.round((tax + subtotal) * 1e2) / 1e2;
+        return { tax, subtotal, total }
+      })).then((result) => { console.log(`getTaxInfo - ln: ${JSON.stringify(result)}`) ; return result; });
+    }
   })
 }
 
