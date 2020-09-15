@@ -95,14 +95,16 @@ async function create(req, res, next) {
     avsStreet: req.body.paymentInfo.avsStreet
   };
   await MX.authorizePayment(payInfo).then((result) => {
-    orderData.paymentInfo = [{
-      created: result.created,
-      paymentToken: result.paymentToken,
-      id: result.id,
-      amount: result.amount,
-      authCode: result.authCode
+    orderData.payHistory = [{
+      status: (result.status === 'Approved') ? 'Placed' : result,
+      _ref: {
+        created: result.created,
+        paymentToken: result.paymentToken,
+        id: result.id,
+        amount: result.amount,
+        authCode: result.authCode
+      }
     }];
-    orderData.status = [{ msg: (result.status === 'Approved') ? 'Placed' : result }];
   });
 
   const order = new Order(orderData);
@@ -126,7 +128,7 @@ async function checkStatus(status) {
     cancelled: false
   }
   await status.map((val) => {
-    switch(val.msg) {
+    switch(val.status) {
       case "Placed":
         s.authorized = true;
         break;
@@ -152,7 +154,7 @@ async function checkStatus(status) {
 async function update(req, res, next) {
   // TODO: Secure access to admin and owner of order.
   const order = req.order;
-  var status = await checkStatus(order.status);
+  var status = await checkStatus(order.payHistory);
   console.log(`PUT /api/orders/:uuid - Status: ${JSON.stringify(status)}`);
   let finalize = (req.body.finalize !== undefined) ? true : false;
   console.log(`PUT /api/orders/:uuid - Finalize: ${finalize}`);
@@ -175,9 +177,9 @@ async function update(req, res, next) {
      * However, if finalize param is true:
      * - Change order in saved model and finalize with new cart
      */
-  console.log(`PUT /api/orders/:uuid - order.paymentInfo: ${JSON.stringify(order.paymentInfo)}`);
-  const paymentInfo = await order.paymentInfo[order.paymentInfo.length - 1];
-  console.log(`PUT /api/orders/:uuid - payInfo: ${JSON.stringify(paymentInfo)}`);
+  console.log(`PUT /api/orders/:uuid - order.payHistory: ${JSON.stringify(order.payHistory)}`);
+  const payHistory = await order.payHistory[order.payHistory.length - 1];
+  console.log(`PUT /api/orders/:uuid - payInfo: ${JSON.stringify(payHistory)}`);
   if (status.cancelled) {
     next(new APIError('Order was previously cancelled.',
       httpStatus.BAD_REQUEST));
@@ -196,38 +198,42 @@ async function update(req, res, next) {
   if (status.paid && calcs.diff) { // Partial Refund Or Payment
     let refundInfo = {
       amount: calcs.change,
-      paymentToken: paymentInfo.paymentToken
+      paymentToken: payHistory._ref.paymentToken
     }
     await MX.refundPartial(refundInfo).then((result) => {
       if (result.status === 'Approved') {
-        order.paymentInfo.push({
-          created: result.created,
-          paymentToken: result.paymentToken,
-          id: result.id,
-          amount: calcs.change,
-          authCode: result.authCode
+        order.payHistory.push({
+          status: (result.status === 'Approved') ? 'Partial Refund' : result,
+          _ref: {
+            created: result.created,
+            paymentToken: result.paymentToken,
+            id: result.id,
+            amount: calcs.change,
+            authCode: result.authCode
+          }
         })
       }
-      order.status.push({ msg: (result.status === 'Approved') ? 'Partial Refund' : result });
     })
   }
   if (!status.paid && finalize) { // Finalize
     let payInfo = {
       amount: await calcs.new.total,
-      paymentToken: paymentInfo.paymentToken,
-      authCode: paymentInfo.authCode
+      paymentToken: payHistory._ref.paymentToken,
+      authCode: payHistory._ref.authCode
     }
     await MX.finalizePayment(payInfo).then((result) => {
       if (result.status === 'Approved') {
-        order.paymentInfo.push({
-          created: result.created,
-          paymentToken: result.paymentToken,
-          id: result.id,
-          amount: result.amount,
-          authCode: result.authCode
+        order.payHistory.push({
+          status: (result.status === 'Approved') ? 'Completed' : result,
+          _ref: {
+            created: result.created,
+            paymentToken: result.paymentToken,
+            id: result.id,
+            amount: result.amount,
+            authCode: result.authCode
+          }
         });
       }
-      order.status.push({ msg: (result.status === 'Approved') ? 'Completed' : result });
     });
   }
   if (calcs.diff) {
@@ -263,8 +269,12 @@ function list(req, res, next) {
 async function remove(req, res, next) {
   const user = req.user;
   const order = req.order;
-  const paymentInfo = order.paymentInfo;
-  payId = paymentInfo[paymentInfo.length - 1].id;
+  const payHistory = order.payHistory;
+  payId = payHistory[payHistory.length - 1]._ref.id;
+  /** TODO: Follow the same switch technique used in UPDATE to ensure that refunds only work
+   * on orders that have not been fully completed, and that if so, the order is calculated
+   * totally, including any refunds that have already happened.
+   */
   await MX.refundFull(payId).then((result) => {
     order.status.push({ msg: (result === 204) ? 'Cancelled' : result });
   })

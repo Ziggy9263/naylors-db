@@ -27,25 +27,29 @@ const OrderSchema = new mongoose.Schema({
   subtotal: Number,
   tax: Number,
   /**
-   * Order Status details:
-   *   Message for client to use, e.g. "Placed", "Completed", "Cancelled", etc.
+   * payHistory Array of Objects
+   *  status        - Message for client to use, e.g. "Placed", "Completed", "Cancelled", etc.
+   *  _ref {        - Reference to the MX Merchant API response
+   *   created      - Stores timestamp from MX Merchant API call
+   *   paymentToken - reference MX Merchant API
+   *   id           - reference MX Merchant API
+   *   amount       - Total amount
+   *   tax          - Tax amount
+   *   authCode     - authCode sent in sale authorization used for finalization
+   *  }
+   *  ts            - Timestamp set on creation of the status in Mongoose.
    */
-  status: [{
-    msg: String,
+  payHistory: [{
+    status: String,
+    _ref: {
+      created: Date,
+      paymentToken: String,
+      id: Number,
+      amount: Number,
+      tax: Number,
+      authCode: String
+    },
     ts: { type: Date, default: Date.now }
-  }],
-  /**
-   * created - Stores what the MX Merchant API returns from call
-   * paymentToken - reference MX merchant API
-   * Amount - total amount
-   * authCode - authCode sent in sale completion
-   */
-  paymentInfo: [{
-    created: Date,
-    paymentToken: String,
-    id: Number,
-    amount: Number,
-    authCode: String
   }],
   updatedLast: {
     type: Date,
