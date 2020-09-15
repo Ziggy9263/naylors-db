@@ -118,7 +118,7 @@ class PaymentHandler {
       },
       responseType: 'json'
     })
-    .then(res => res.data)
+    .then(res => res.status)
     .catch(error => error);
   }
 }

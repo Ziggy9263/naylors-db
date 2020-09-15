@@ -95,13 +95,13 @@ async function create(req, res, next) {
     avsStreet: req.body.paymentInfo.avsStreet
   };
   await MX.authorizePayment(payInfo).then((result) => {
-    orderData.paymentInfo = {
+    orderData.paymentInfo = [{
       created: result.created,
       paymentToken: result.paymentToken,
       id: result.id,
       amount: result.amount,
       authCode: result.authCode
-    };
+    }];
     orderData.status = [{ msg: (result.status === 'Approved') ? 'Placed' : result }];
   });
 
@@ -130,7 +130,7 @@ async function checkStatus(status) {
       case "Placed":
         s.authorized = true;
         break;
-      case "Approved":
+      case "Completed":
         s.paid = true;
         break;
       case "Partial Refund":
@@ -153,16 +153,20 @@ async function update(req, res, next) {
   // TODO: Secure access to admin and owner of order.
   const order = req.order;
   var status = await checkStatus(order.status);
-  let finalize = (req.body.finalize && !status.paid) ? true : false;
+  console.log(`PUT /api/orders/:uuid - Status: ${JSON.stringify(status)}`);
+  let finalize = (req.body.finalize !== undefined) ? true : false;
+  console.log(`PUT /api/orders/:uuid - Finalize: ${finalize}`);
   var orderData = {};
-  var calcs = { new: {}, old: {}, diff: false };
+  var calcs = { new: {}, old: {}, diff: false, change: 0 };
   try {
     calcs.new = await productCtrl.getTaxInfo(req.body.cartDetail)
       .then(detail => detail).catch(e => new Error(e));
     calcs.old = await productCtrl.getTaxInfo(order.cartDetail)
       .then(detail => detail).catch(e => new Error(e));
-  if (calcs.new !== calcs.old) calcs.diff = true;
+    calcs.diff = JSON.stringify(calcs.new) !== JSON.stringify(calcs.old);
+    calcs.change = (calcs.diff) ? Math.round((calcs.new.total - calcs.old.total) * 1e2) / 1e2 : 0;
   } catch(e) { next(new APIError(e, httpStatus.BAD_REQUEST)) };
+  console.log(`PUT /api/orders/:uuid - Calcs: ${JSON.stringify(calcs)}`);
     /**
      * Must ensure that payment has not been completed, if it has:
      * - Use the partial refund function from payments.js
@@ -171,44 +175,70 @@ async function update(req, res, next) {
      * However, if finalize param is true:
      * - Change order in saved model and finalize with new cart
      */
-  let amount = 0;
-  let payInfo = {};
-  if (order.cartDetail !== req.body.cartDetail) order.cartDetail = req.body.cartDetail;
-
-  await Promise.all(req.body.cartDetail.map(async (item) => {
-    const product = await productCtrl.loadByTag(item.product);
-    amount += item.quantity * product.price;
-  })).then(() => {
-    payInfo = {
-      amount,
-      authCode: order.paymentInfo[0].authCode,
-      paymentToken: order.paymentInfo[0].paymentToken
-    };
-  });
-  order.userComments = req.body.userComments;
-  order.comments = req.body.comments;
-
-  if (req.body.finalize) {
-    return await MX.finalizePayment(payInfo).then((result) => {
+  console.log(`PUT /api/orders/:uuid - order.paymentInfo: ${JSON.stringify(order.paymentInfo)}`);
+  const paymentInfo = await order.paymentInfo[order.paymentInfo.length - 1];
+  console.log(`PUT /api/orders/:uuid - payInfo: ${JSON.stringify(paymentInfo)}`);
+  if (status.cancelled) {
+    next(new APIError('Order was previously cancelled.',
+      httpStatus.BAD_REQUEST));
+  }
+  if (!status.authorized) {
+    next(new APIError('Order has not been authorized.',
+      httpStatus.BAD_GATEWAY));
+  }
+  if (status.paid && finalize) {
+    next(new APIError('Cannot finalize paid transaction.',
+      httpStatus.BAD_REQUEST));
+  }
+  if (status.authorized && !status.paid && !finalize) { // Edit Only
+    order.status.push({ msg: 'Edited' })
+  }
+  if (status.paid && calcs.diff) { // Partial Refund Or Payment
+    let refundInfo = {
+      amount: calcs.change,
+      paymentToken: paymentInfo.paymentToken
+    }
+    await MX.refundPartial(refundInfo).then((result) => {
       if (result.status === 'Approved') {
         order.paymentInfo.push({
           created: result.created,
           paymentToken: result.paymentToken,
+          id: result.id,
+          amount: calcs.change,
+          authCode: result.authCode
+        })
+      }
+      order.status.push({ msg: (result.status === 'Approved') ? 'Partial Refund' : result });
+    })
+  }
+  if (!status.paid && finalize) { // Finalize
+    let payInfo = {
+      amount: await calcs.new.total,
+      paymentToken: paymentInfo.paymentToken,
+      authCode: paymentInfo.authCode
+    }
+    await MX.finalizePayment(payInfo).then((result) => {
+      if (result.status === 'Approved') {
+        order.paymentInfo.push({
+          created: result.created,
+          paymentToken: result.paymentToken,
+          id: result.id,
           amount: result.amount,
           authCode: result.authCode
         });
       }
       order.status.push({ msg: (result.status === 'Approved') ? 'Completed' : result });
-    }).finally(async () => {
-      try {
-        const savedOrder = await order.save();
-        return res.json(savedOrder);
-      } catch (e) {
-        return next(e);
-      }
     });
   }
-  return order.save()
+  if (calcs.diff) {
+    order.cartDetail = req.body.cartDetail;
+    order.subtotal = calcs.new.subtotal;
+    order.tax = calcs.new.tax;
+  }
+  order.userComments = req.body.userComments;
+  order.comments = req.body.comments;
+
+  await order.save()
     .then(savedOrder => res.json(savedOrder))
     .catch(e => next(e));
 }
@@ -230,13 +260,22 @@ function list(req, res, next) {
  * Delete order.
  * @returns {Order}
  */
-function remove(req, res, next) {
+async function remove(req, res, next) {
   const user = req.user;
   const order = req.order;
-  await
-  if(user.isAdmin) {
-    return order.remove()
-      .then(deletedOrder => res.json(deletedOrder))
+  const paymentInfo = order.paymentInfo;
+  payId = paymentInfo[paymentInfo.length - 1].id;
+  await MX.refundFull(payId).then((result) => {
+    order.status.push({ msg: (result === 204) ? 'Cancelled' : result });
+  })
+  if(!user.isAdmin) {
+    await order.save()
+      .then(savedOrder => res.json(savedOrder))
+      .catch(e => next(e));
+  } else {
+    // Consider implementing a specific toggle for this function requiring admin
+    await order.remove()
+      .then(deletedOrder => res.json({ "deleted": true, deletedOrder }))
       .catch(e => next(e));
   }
 }
