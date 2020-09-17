@@ -49,7 +49,8 @@ const UserSchema = new mongoose.Schema({
     default: Date.now
   },
   taxExempt: {
-    type: String
+    type: String,
+    default: undefined
   },
   isAdmin: {
     type: Boolean,
