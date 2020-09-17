@@ -74,19 +74,18 @@ async function create(req, res, next) {
   let calcs = {};
   try {
     calcs = await productCtrl.getTaxInfo(req.body.cartDetail)
-      .then(tax => tax).catch(e => new Error(e));
+      .then(detail => detail).catch(e => { throw { e }; });
     orderData = {
       user: await User.findOne({ email: req.user.email}).exec().then(u => u._doc._id).catch(e => new Error(e)),
       cartDetail: req.body.cartDetail,
       userComments: req.body.userComments,
-      comments: req.body.comments,
-      subtotal: calcs.subtotal,
-      tax: calcs.tax
+      comments: req.body.comments
     };
   } catch(e) { next(new APIError(e, httpStatus.BAD_REQUEST)) };
 
   const payInfo = {
     amount: calcs.total,
+    tax: calcs.tax,
     cardNumber: req.body.paymentInfo.cardNumber,
     expiryMonth: req.body.paymentInfo.expiryMonth,
     expiryYear: req.body.paymentInfo.expiryYear,
@@ -102,6 +101,7 @@ async function create(req, res, next) {
         paymentToken: result.paymentToken,
         id: result.id,
         amount: result.amount,
+        tax: result.tax,
         authCode: result.authCode
       }
     }];
@@ -125,10 +125,11 @@ async function checkStatus(status) {
     authorized: false,
     paid: false,
     refunded: false,
-    cancelled: false
+    cancelled: false,
+    edited: false
   }
-  await status.map((val) => {
-    switch(val.status) {
+  status.map((val) => {
+    switch (val.status) {
       case "Placed":
         s.authorized = true;
         break;
@@ -140,6 +141,9 @@ async function checkStatus(status) {
         break;
       case "Cancelled":
         s.cancelled = true;
+        break;
+      case "Edited":
+        s.edited = true;
         break;
     }
   });
@@ -155,9 +159,7 @@ async function update(req, res, next) {
   // TODO: Secure access to admin and owner of order.
   const order = req.order;
   var status = await checkStatus(order.payHistory);
-  console.log(`PUT /api/orders/:uuid - Status: ${JSON.stringify(status)}`);
-  let finalize = (req.body.finalize !== undefined) ? true : false;
-  console.log(`PUT /api/orders/:uuid - Finalize: ${finalize}`);
+  let finalize = (req.body.finalize === true) ? true : false;
   var orderData = {};
   var calcs = { new: {}, old: {}, diff: false, change: 0 };
   try {
@@ -170,16 +172,14 @@ async function update(req, res, next) {
   } catch(e) { next(new APIError(e, httpStatus.BAD_REQUEST)) };
   console.log(`PUT /api/orders/:uuid - Calcs: ${JSON.stringify(calcs)}`);
     /**
-     * Must ensure that payment has not been completed, if it has:
+     * Ensures that payment has not been completed, if it has:
      * - Use the partial refund function from payments.js
      * And if it has not:
      * - Change order in saved model, no need to call to MX API
      * However, if finalize param is true:
      * - Change order in saved model and finalize with new cart
      */
-  console.log(`PUT /api/orders/:uuid - order.payHistory: ${JSON.stringify(order.payHistory)}`);
-  const payHistory = await order.payHistory[order.payHistory.length - 1];
-  console.log(`PUT /api/orders/:uuid - payInfo: ${JSON.stringify(payHistory)}`);
+  const payHistory = await order.payHistory[0];
   if (status.cancelled) {
     next(new APIError('Order was previously cancelled.',
       httpStatus.BAD_REQUEST));
@@ -193,11 +193,18 @@ async function update(req, res, next) {
       httpStatus.BAD_REQUEST));
   }
   if (status.authorized && !status.paid && !finalize) { // Edit Only
-    order.status.push({ msg: 'Edited' })
+    order.payHistory.push({
+      status: 'Edited',
+      _ref: {
+        amount: calcs.new.total,
+        tax: calcs.new.tax
+      }
+    })
   }
   if (status.paid && calcs.diff) { // Partial Refund Or Payment
     let refundInfo = {
       amount: calcs.change,
+      tax: calcs.new.tax,
       paymentToken: payHistory._ref.paymentToken
     }
     await MX.refundPartial(refundInfo).then((result) => {
@@ -208,7 +215,8 @@ async function update(req, res, next) {
             created: result.created,
             paymentToken: result.paymentToken,
             id: result.id,
-            amount: calcs.change,
+            amount: result.amount,
+            tax: result.tax,
             authCode: result.authCode
           }
         })
@@ -217,7 +225,8 @@ async function update(req, res, next) {
   }
   if (!status.paid && finalize) { // Finalize
     let payInfo = {
-      amount: await calcs.new.total,
+      amount: calcs.new.total,
+      tax: calcs.new.tax,
       paymentToken: payHistory._ref.paymentToken,
       authCode: payHistory._ref.authCode
     }
@@ -230,6 +239,7 @@ async function update(req, res, next) {
             paymentToken: result.paymentToken,
             id: result.id,
             amount: result.amount,
+            tax: result.tax,
             authCode: result.authCode
           }
         });
@@ -238,13 +248,13 @@ async function update(req, res, next) {
   }
   if (calcs.diff) {
     order.cartDetail = req.body.cartDetail;
-    order.subtotal = calcs.new.subtotal;
-    order.tax = calcs.new.tax;
+    order.userComments = req.body.userComments;
+    order.comments = req.body.comments;
   }
   order.userComments = req.body.userComments;
   order.comments = req.body.comments;
 
-  await order.save()
+  order.save()
     .then(savedOrder => res.json(savedOrder))
     .catch(e => next(e));
 }
@@ -263,29 +273,122 @@ function list(req, res, next) {
 }
 
 /**
+ * Takes payHistory and calculates proper refund OR returns 0 if refund not allowed.
+ * @param {array} refundAmount - Amount to be refunded.
+ */
+async function calculateRefund(payHistory) {
+  var s = {
+    authorized: false,
+    paid: false,
+    refunded: false,
+    cancelled: false,
+    edited: false
+  }
+  var refundAmount = 0;
+  var taxAmount = 0;
+  var unAuthCancel = true;
+  var reason = null;
+  var payToken = null;
+  await payHistory.map((val) => {
+    var amount = val._ref.amount;
+    var tax = val._ref.tax;
+    switch(val.status) {
+      case "Placed":
+        s.authorized = true;
+        refundAmount = amount;
+        taxAmount = tax;
+        payToken = val._ref.paymentToken;
+        break;
+      case "Edited":
+        s.edited = true;
+        refundAmount = amount;
+        taxAmount = tax;
+        break;
+      case "Completed":
+        s.paid = true;
+        refundAmount = amount;
+        taxAmount = tax;
+        unAuthCancel = false;
+        reason = 'Order has been completed.'
+        break;
+      case "Partial Refund":
+        s.refunded = true;
+        refundAmount += amount;
+        taxAmount -= tax;
+        break;
+      case "Cancelled":
+        s.cancelled = true;
+        refundAmount = 0;
+        taxAmount = 0;
+        unAuthCancel = false;
+        reason = 'Order has previously been cancelled.'
+        break;
+    }
+  });
+  var retObj = {
+    refundAmount: Math.round(-refundAmount * 1e2) / 1e2,
+    taxAmount: Math.round(taxAmount * 1e2) / 1e2,
+    payToken,
+    unAuthCancel,
+    reason
+  }
+  if (s.authorized && !s.paid) {
+    retObj.unAuthCancel = false;
+    retObj.reason = 'Payment never processed.'
+  }
+  return retObj;
+}
+
+/**
  * Delete order.
  * @returns {Order}
  */
 async function remove(req, res, next) {
+  const totalDelete = req.query.total;
   const user = req.user;
   const order = req.order;
   const payHistory = order.payHistory;
+  const refundCalc = await calculateRefund(payHistory);
+
   payId = payHistory[payHistory.length - 1]._ref.id;
   /** TODO: Follow the same switch technique used in UPDATE to ensure that refunds only work
    * on orders that have not been fully completed, and that if so, the order is calculated
    * totally, including any refunds that have already happened.
    */
-  await MX.refundFull(payId).then((result) => {
-    order.status.push({ msg: (result === 204) ? 'Cancelled' : result });
-  })
-  if(!user.isAdmin) {
+  if(!refundCalc.unAuthCancel && !user.isAdmin) {
+    res.json({ deleted: false, reason: refundCalc.reason })
+  }
+  if(refundCalc.unAuthCancel || (refundCalc.unAuthCancel && user.isAdmin)) {
+    let refundInfo = {
+      amount: refundCalc.refundAmount,
+      tax: refundCalc.taxAmount,
+      paymentToken: refundCalc.payToken
+    }
+    await MX.refundPartial(refundInfo).then((result) => {
+      if (result.status === 'Approved') {
+        order.payHistory.push({
+          status: (result.status === 'Approved') ? 'Cancelled' : result,
+          _ref: {
+            created: result.created,
+            paymentToken: result.paymentToken,
+            id: result.id,
+            amount: result.amount,
+            tax: result.tax,
+            authCode: result.authCode
+          }
+        })
+      }
+    })
+  }
+  if((!user.isAdmin && !totalDelete) || (user.isAdmin && !totalDelete)) {
     await order.save()
       .then(savedOrder => res.json(savedOrder))
       .catch(e => next(e));
-  } else {
+  }
+  if(user.isAdmin && totalDelete) {
     // Consider implementing a specific toggle for this function requiring admin
     await order.remove()
-      .then(deletedOrder => res.json({ "deleted": true, deletedOrder }))
+      .then(deletedOrder => res.json({ deleted: true, deletedOrder }))
       .catch(e => next(e));
   }
 }

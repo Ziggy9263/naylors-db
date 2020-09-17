@@ -24,8 +24,6 @@ const OrderSchema = new mongoose.Schema({
     product: Number,
     quantity: Number
   }],
-  subtotal: Number,
-  tax: Number,
   /**
    * payHistory Array of Objects
    *  status        - Message for client to use, e.g. "Placed", "Completed", "Cancelled", etc.
@@ -40,7 +38,7 @@ const OrderSchema = new mongoose.Schema({
    *  ts            - Timestamp set on creation of the status in Mongoose.
    */
   payHistory: [{
-    status: String,
+    status: { type: String, required: true },
     _ref: {
       created: Date,
       paymentToken: String,
