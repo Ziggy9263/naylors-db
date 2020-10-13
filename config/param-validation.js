@@ -71,11 +71,11 @@ module.exports = {
   // PUT /api/products/:tag
   updateProduct: {
     body: {
-      tag: Joi.number().required(),
-      name: Joi.string().required(),
+      tag: Joi.number(),
+      name: Joi.string(),
       description: Joi.string(),
       category: Joi.string(),
-      price: Joi.number().required(),
+      price: Joi.number(),
       images: Joi.array(),
       taxExempt: Joi.boolean(),
       comments: Joi.string()
