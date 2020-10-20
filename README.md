@@ -45,6 +45,9 @@ Refer [debug](https://www.npmjs.com/package/debug) to know how to selectively tu
 ## Deployment
 
 Ensure the environment variables are set to production.
+```env
+NODE_ENV=production
+```
 
 Install pm2
 ```sh
