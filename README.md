@@ -41,3 +41,20 @@ DEBUG=naylors-db:* yarn start
 yarn start:debug
 ```
 Refer [debug](https://www.npmjs.com/package/debug) to know how to selectively turn on logs.
+
+## Deployment
+
+Ensure the environment variables are set to production.
+
+Install pm2
+```sh
+npm install -g pm2
+```
+
+Start server using pm2
+```sh
+pm2 start $(which yarn) --name naylors-db -- start
+
+# Or use pm2 to develop by changing start to start:debug
+pm2 start $(which yarn) --name naylors-dev -- start:debug
+```
