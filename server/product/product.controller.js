@@ -121,7 +121,7 @@ function create(req, res, next) {
     category: req.body.category,
     price: req.body.price,
     images: req.body.images,
-    sizes: req.body.sizes, // [ { size: "50lbs", tag: 36009 }, ... ]
+    sizes: req.body.sizes, // [ { size: "50lbs", tag: "36009" }, ... ]
     taxExempt: req.body.taxExempt,
     comments: req.body.comments
   });

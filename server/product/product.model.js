@@ -36,7 +36,7 @@ const ProductSchema = new mongoose.Schema({
     type: Array,
     default: [{
       size: { type: String },
-      tag: { type: Number }
+      tag: { type: String }
     }]
   },
   updatedLast: {
