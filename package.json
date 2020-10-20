@@ -60,7 +60,7 @@
     "jsonwebtoken": "7.1.9",
     "method-override": "^2.3.10",
     "mongoose": "5.7.5",
-    "morgan": "1.9.0",
+    "morgan": "1.9.1",
     "nodemailer": "false6.4.11",
     "uuid": "false8.3.0",
     "winston": "2.4.1"
