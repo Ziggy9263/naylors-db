@@ -63,6 +63,7 @@ module.exports = {
       category: Joi.string(),
       price: Joi.number().required(),
       images: Joi.array(),
+      sizes: Joi.array(),
       taxExempt: Joi.boolean(),
       comments: Joi.string()
     }
@@ -77,6 +78,7 @@ module.exports = {
       category: Joi.string(),
       price: Joi.number(),
       images: Joi.array(),
+      sizes: Joi.array(),
       taxExempt: Joi.boolean(),
       comments: Joi.string()
     },
