@@ -163,8 +163,8 @@ function update(req, res, next) {
  * @returns {Product[]}
  */
 function list(req, res, next) {
-  const { limit = 50, skip = 0 } = req.query;
-  Product.list({ limit, skip })
+  const { limit = 50, skip = 0, q = null } = req.query;
+  Product.list({ limit, skip, q })
     .then(products => res.json({ "products": publicize(new Array(products))}))
     .catch(e => next(e));
 }
