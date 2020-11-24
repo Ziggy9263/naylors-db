@@ -86,7 +86,7 @@ ProductSchema.statics = {
    * @returns {Promise<Product[]>}
    */
   list({ skip = 0, limit = 50, q = null } = {}) {
-    return this.find((q) ? q : {})
+    return this.find((q) ? {'name': q} : {})
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)
