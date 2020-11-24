@@ -54,6 +54,15 @@ module.exports = {
     }
   },
 
+  // GET /api/products
+  getProduct: {
+    params: {
+      limit: Joi.number(),
+      skip: Joi.number(),
+      q: Joi.string()
+    }
+  },
+
   // POST /api/products
   createProduct: {
     body: {
