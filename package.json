@@ -1,5 +1,5 @@
 {
-  "name": "em6rest-api-2",
+  "name": "naylors-db",
   "version": "5.0.0",
   "description": "Full featured backend API for Naylor's Farm and Ranch Supply's online ordering",
   "author": "J. Zane Cook <jason.zane.cook@gmail.com>",
@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "start:debug": "cross-env DEBUG=em6rest-api-2:* yarn start",
+    "start:debug": "cross-env DEBUG=naylors-db:* yarn start",
     "lint": "esw *.js server config --color",
     "lint:watch": "yarn lint -- --watch",
     "precommit": "yarn lint && yarn test",
