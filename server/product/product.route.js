@@ -9,7 +9,8 @@ const router = express.Router(); // eslint-disable-line new-cap
 
 router.route('/')
   /** GET /api/products - Get list of products */
-  .get(productCtrl.list)
+  .get(validate(paramValidation.getProduct),
+    productCtrl.list)
 
   /** POST /api/products - Create new product */
   .post(expressJwt({ secret: config.jwtSecret }),
