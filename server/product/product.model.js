@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Promise = require('bluebird');
 mongoose.Promise = require('bluebird');
+const mongoose_fuzzy_searching = require('mongoose_fuzzy_searching');
 const httpStatus = require('http-status');
 const APIError = require('../helpers/APIError');
 
@@ -58,6 +59,11 @@ const ProductSchema = new mongoose.Schema({
 });
 
 /**
+ * Fuzzy Searching Capability via mongoose-fuzzy-searching plugin
+ */
+ProductSchema.plugin(mongoose_fuzzy_searching, { fields: ['name', 'description', 'category', 'tag'] });
+
+/**
  * Statics
  */
 ProductSchema.statics = {
@@ -86,7 +92,11 @@ ProductSchema.statics = {
    * @returns {Promise<Product[]>}
    */
   list({ skip = 0, limit = 50, q = null } = {}) {
-    return this.find((q) ? {'name': q} : {})
+    if (q != null) return this.fuzzySearch(q)
+      .skip(+skip)
+      .limit(+limit)
+      .exec();
+    if (q == null) return this.find()
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)

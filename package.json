@@ -60,6 +60,7 @@
     "jsonwebtoken": "7.1.9",
     "method-override": "^2.3.10",
     "mongoose": "5.7.5",
+    "mongoose-fuzzy-searching": "false2.0.2",
     "morgan": "1.9.1",
     "nodemailer": "false6.4.11",
     "uuid": "false8.3.0",
