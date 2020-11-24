@@ -61,7 +61,7 @@ const ProductSchema = new mongoose.Schema({
 /**
  * Fuzzy Searching Capability via mongoose-fuzzy-searching plugin
  */
-ProductSchema.plugin(mongoose_fuzzy_searching, { fields: ['name', 'description', 'category', 'tag'] });
+ProductSchema.plugin(mongoose_fuzzy_searching, { fields: ['name', 'description', 'category'] });
 
 /**
  * Statics
@@ -88,15 +88,10 @@ ProductSchema.statics = {
    * List products in descending order of 'createdAt' timestamp.
    * @param {number} skip - Number of products to be skipped.
    * @param {number} limit - Limit number of products to be returned.
-   * @param {string} q - Query for searching products
    * @returns {Promise<Product[]>}
    */
-  list({ skip = 0, limit = 50, q = null } = {}) {
-    if (q != null) return this.fuzzySearch(q)
-      .skip(+skip)
-      .limit(+limit)
-      .exec();
-    if (q == null) return this.find()
+  list({ skip = 0, limit = 50 } = {}) {
+    return this.find()
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)

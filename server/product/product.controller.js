@@ -160,11 +160,15 @@ function update(req, res, next) {
  * Get product list.
  * @property {number} req.query.skip - Number of products to be skipped.
  * @property {number} req.query.limit - Limit number of products to be returned.
+ * @property {string} req.query.q - Fuzzy Search String
  * @returns {Product[]}
  */
 function list(req, res, next) {
-  const { limit = 50, skip = 0, q = null } = req.query;
-  Product.list({ limit, skip, q })
+  const { limit = 50, skip = 0 } = req.query;
+  if (req.query.q != undefined) Product.fuzzySearch(req.query.q).limit(+limit).skip(+skip).exec()
+    .then(products => res.json({ "products": publicize(new Array(products))}))
+    .catch(e => next(e));
+  else Product.list({ limit, skip })
     .then(products => res.json({ "products": publicize(new Array(products))}))
     .catch(e => next(e));
 }
