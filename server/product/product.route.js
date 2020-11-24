@@ -13,7 +13,7 @@ router.route('/')
     productCtrl.list)
 
   /** POST /api/products - Create new product */
-  .post(expressJwt({ secret: config.jwtSecret, algorithms: ['RS256'] }),
+  .post(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
     validate(paramValidation.createProduct),
     productCtrl.create);
 
@@ -22,12 +22,12 @@ router.route('/:tag')
   .get(productCtrl.get)
 
   /** PUT /api/products/:tag - Update product */
-  .put(expressJwt({ secret: config.jwtSecret, algorithms: ['RS256'] }),
+  .put(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
     validate(paramValidation.updateProduct),
     productCtrl.update)
 
   /** DELETE /api/products/:tag - Delete product */
-  .delete(expressJwt({ secret: config.jwtSecret, algorithms: ['RS256'] }),
+  .delete(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
     productCtrl.remove);
 
 /** Load product when API with tag route parameter is hit */

@@ -18,7 +18,7 @@ router.route('/verify/:token')
 /** GET /api/auth/random-number - Protected route,
  * needs token returned by the above as header. Authorization: Bearer {token} */
 router.route('/random-number')
-  .get(expressJwt({ secret: config.jwtSecret, algorithms: ['RS256'] }), authCtrl.getRandomNumber);
+  .get(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }), authCtrl.getRandomNumber);
 
 /** Load user when API with token route parameter is hit */
 router.param('token', userCtrl.loadByVerificationToken);
