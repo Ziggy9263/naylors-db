@@ -12,7 +12,7 @@ router.route('/')
   .get(orderCtrl.list)
 
   /** POST /api/orders - Create new order */
-  .post(expressJwt({ secret: config.jwtSecret }),
+  .post(expressJwt({ secret: config.jwtSecret, algorithms: ['RS256'] }),
     validate(paramValidation.createOrder),
     orderCtrl.create);
 
@@ -21,12 +21,12 @@ router.route('/:uuid')
   .get(orderCtrl.get)
 
   /** PUT /api/orders/:uuid - Update order */
-  .put(expressJwt({ secret: config.jwtSecret }),
+  .put(expressJwt({ secret: config.jwtSecret, algorithms: ['RS256'] }),
     validate(paramValidation.updateOrder),
     orderCtrl.update)
 
   /** DELETE /api/orders/:uuid - Delete order */
-  .delete(expressJwt({ secret: config.jwtSecret }),
+  .delete(expressJwt({ secret: config.jwtSecret, algorithms: ['RS256'] }),
     orderCtrl.remove);
 
 /** Load order when API with uuid route parameter is hit */

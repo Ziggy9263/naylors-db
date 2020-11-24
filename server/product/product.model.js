@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Promise = require('bluebird');
 mongoose.Promise = require('bluebird');
-const mongoose_fuzzy_searching = require('mongoose_fuzzy_searching');
+const mongoose_fuzzy_searching = require('mongoose-fuzzy-searching');
 const httpStatus = require('http-status');
 const APIError = require('../helpers/APIError');
 
