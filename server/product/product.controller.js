@@ -165,7 +165,7 @@ function update(req, res, next) {
  */
 function list(req, res, next) {
   const { limit = 50, skip = 0 } = req.query;
-  if (req.query.q != undefined) Product.fuzzySearch(req.query.q).limit(+limit).skip(+skip).exec()
+  if (req.query.q != undefined) Product.find({}).fuzzySearch(req.query.q).limit(+limit).skip(+skip).exec()
     .then(products => res.json({ "products": publicize(new Array(products))}))
     .catch(e => next(e));
   else Product.list({ limit, skip })
