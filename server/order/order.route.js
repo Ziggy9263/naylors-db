@@ -9,7 +9,8 @@ const router = express.Router(); // eslint-disable-line new-cap
 
 router.route('/')
   /** GET /api/orders - Get list of orders */
-  .get(orderCtrl.list)
+  .get(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+    orderCtrl.list)
 
   /** POST /api/orders - Create new order */
   .post(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),

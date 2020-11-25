@@ -15,6 +15,7 @@ function login(req, res, next) {
   // Creates and returns JWT from User.email
   let email = null;
   let isAdmin;
+  let _id;
   User.findOne({ email: req.body.email.toLowerCase() })
   // eslint-disable-next-line consistent-return
   .then((user) => {
@@ -24,11 +25,13 @@ function login(req, res, next) {
       if (!isMatch) return next(new APIError('Password Does Not Match', httpStatus.BAD_REQUEST));
       email = user.email;
       isAdmin = user.isAdmin;
+      _id = user._id;
 
       if (email) {
         return res.json({
 	  token: jwt.sign({ email, isAdmin }, config.jwtSecret, { algorithm: 'HS256' }),
-          email
+          email,
+	  _id
         });
       }
 

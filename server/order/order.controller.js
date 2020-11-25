@@ -266,8 +266,9 @@ async function update(req, res, next) {
  * @returns {Order[]}
  */
 function list(req, res, next) {
+  var user = req.user._id;
   const { limit = 50, skip = 0 } = req.query;
-  Order.list({ limit, skip })
+  Order.list({ limit, skip, user })
     .then(orders => res.json(publicize(new Array(orders))))
     .catch(e => next(e));
 }

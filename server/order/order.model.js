@@ -95,8 +95,8 @@ OrderSchema.statics = {
    * @param {number} limit - Limit number of orders to be returned.
    * @returns {Promise<Order[]>}
    */
-  list({ skip = 0, limit = 50 } = {}) {
-    return this.find()
+  list({ skip = 0, limit = 50, user = null } = {}) {
+    return this.find((user != null) ? {'_id': user} : {})
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)
