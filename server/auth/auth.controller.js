@@ -29,8 +29,9 @@ function login(req, res, next) {
 
       if (email) {
         return res.json({
-	  token: jwt.sign({ email, isAdmin }, config.jwtSecret, { algorithm: 'HS256' }),
+	  token: jwt.sign({ email, isAdmin, _id }, config.jwtSecret, { algorithm: 'HS256' }),
           email,
+	  isAdmin,
 	  _id
         });
       }
