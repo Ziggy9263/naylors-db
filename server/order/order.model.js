@@ -96,7 +96,7 @@ OrderSchema.statics = {
    * @returns {Promise<Order[]>}
    */
   list({ skip = 0, limit = 50, user = null } = {}) {
-    return this.find((user != null) ? {'_id': user} : {})
+    return this.find((user != null) ? {'user': user} : {})
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)

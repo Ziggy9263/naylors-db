@@ -82,7 +82,6 @@ async function create(req, res, next) {
       comments: req.body.comments
     };
   } catch(e) { next(new APIError(e, httpStatus.BAD_REQUEST)) };
-
   const payInfo = {
     amount: calcs.total,
     tax: calcs.tax,
@@ -93,6 +92,7 @@ async function create(req, res, next) {
     avsZip: req.body.paymentInfo.avsZip,
     avsStreet: req.body.paymentInfo.avsStreet
   };
+  console.log("Create order step: " + JSON.stringify(payInfo));
   await MX.authorizePayment(payInfo).then((result) => {
     orderData.payHistory = [{
       status: (result.status === 'Approved') ? 'Placed' : result,
@@ -266,7 +266,8 @@ async function update(req, res, next) {
  * @returns {Order[]}
  */
 function list(req, res, next) {
-  var user = (req.user._id != null) ? req.user._id : null;
+  var user = req.user?._id;
+  console.log("Order list Fired, User: " + user);
   const { limit = 50, skip = 0 } = req.query;
   Order.list({ limit, skip, user })
     .then(orders => res.json(publicize(new Array(orders))))
