@@ -267,7 +267,6 @@ async function update(req, res, next) {
  */
 function list(req, res, next) {
   var user = req.user?._id;
-  console.log("Order list Fired, User: " + user);
   const { limit = 50, skip = 0 } = req.query;
   Order.list({ limit, skip, user })
     .then(orders => res.json(publicize(new Array(orders))))
@@ -288,7 +287,7 @@ async function calculateRefund(payHistory) {
   }
   var refundAmount = 0;
   var taxAmount = 0;
-  var unAuthCancel = true;
+  var unAuthCancel = true; // Un-Authorized Cancel - False if the cancellation would be a mistake, or cause issues.
   var reason = null;
   var payToken = null;
   await payHistory.map((val) => {
@@ -357,8 +356,18 @@ async function remove(req, res, next) {
    * on orders that have not been fully completed, and that if so, the order is calculated
    * totally, including any refunds that have already happened.
    */
-  if(!refundCalc.unAuthCancel && !user.isAdmin) {
-    res.json({ deleted: false, reason: refundCalc.reason })
+  if(!refundCalc.unAuthCancel) {
+    if(order.payHistory[order.payHistory.length - 1].status === 'Cancelled') {
+      return res.json({ deleted: false, reason: refundCalc.reason });
+    } else if(refundCalc.reason === 'Payment never processed.') {
+      order.payHistory.push({
+        status: 'Cancelled'
+      });
+      return await order.save()
+        .then(savedOrder => res.json(savedOrder))
+        .catch(e => next(e));
+    } else
+      res.json({ deleted: false, reason: refundCalc.reason })
   }
   if(refundCalc.unAuthCancel || (refundCalc.unAuthCancel && user.isAdmin)) {
     let refundInfo = {
