@@ -82,7 +82,8 @@ async function create(req, res, next) {
       comments: req.body.comments
     };
   } catch(e) { next(new APIError(e, httpStatus.BAD_REQUEST)) };
-  const payInfo = {
+    var payOption = req.body.paymentInfo.payOption;
+  const payInfo = (payOption === "WithCard") ? {
     amount: calcs.total,
     tax: calcs.tax,
     cardNumber: req.body.paymentInfo.cardNumber,
@@ -90,22 +91,34 @@ async function create(req, res, next) {
     expiryYear: req.body.paymentInfo.expiryYear,
     cvv: req.body.paymentInfo.cvv,
     avsZip: req.body.paymentInfo.avsZip,
-    avsStreet: req.body.paymentInfo.avsStreet
-  };
-  console.log("Create order step: " + JSON.stringify(payInfo));
-  await MX.authorizePayment(payInfo).then((result) => {
-    orderData.payHistory = [{
-      status: (result.status === 'Approved') ? 'Placed' : result,
-      _ref: {
-        created: result.created,
-        paymentToken: result.paymentToken,
-        id: result.id,
-        amount: result.amount,
-        tax: result.tax,
-        authCode: result.authCode
-      }
-    }];
-  });
+    avsStreet: req.body.paymentInfo.avsStreet,
+    payOption: payOption
+  } : { amount: calcs.total, tax: calcs.tax, payOption: payOption };
+  if (payOption === "WithCard") {
+    await MX.authorizePayment(payInfo).then((result) => {
+      orderData.payHistory = [{
+        status: (result.status === 'Approved') ? 'Placed' : result,
+        _ref: {
+          created: result.created,
+          paymentToken: result.paymentToken,
+          id: result.id,
+          amount: result.amount,
+          tax: result.tax,
+          authCode: result.authCode,
+          payOption: payOption
+        }
+      }];
+    });
+  } else if (payOption === "InStore") {
+    console.log(`OrderPaymentInStore - ${payInfo.amount}, ${payInfo.tax}, ${payInfo.payOption}`);
+    orderData.payHistory = [{ status: 'Placed', _ref: {
+      amount: payInfo.amount,
+      tax: payInfo.tax,
+      payOption: payInfo.payOption
+    } }];
+  } else {
+    return next(APIError('payOption invalid'));
+  }
 
   const order = new Order(orderData);
 

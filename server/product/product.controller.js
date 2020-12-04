@@ -80,13 +80,19 @@ function getTaxInfo(cartDetail) {
         .then((result) => { console.log(`getTaxInfo - l1: ${JSON.stringify(result)}`); return result; });
     }
     if (value.length >= 1) {
-      return Promise.resolve(value.reduce((a, b) => {
+      /*return Promise.resolve(value.reduce((a, b) => {
         tax = ((!a.taxExempt) ? Math.round(((a.price * a.quantity) * 0.0825) * 1e2) / 1e2 : 0)
           + ((!b.taxExempt) ? Math.round(((b.price * b.quantity) * 0.0825) * 1e2) / 1e2 : 0);
         subtotal = Math.round(((a.price * a.quantity) + (b.price * b.quantity)) * 1e2) / 1e2;
         total = Math.round((tax + subtotal) * 1e2) / 1e2;
         return { tax, subtotal, total }
-      })).then((result) => { console.log(`getTaxInfo - ln: ${JSON.stringify(result)}`) ; return result; });
+      }))*/
+      var tax = 0, subtotal = 0, total = 0;
+      return Promise.resolve(value.forEach((val, index) => {
+	tax += ((!val.taxExempt) ? Math.round(((val.price * val.quantity) * 0.0825) * 1e2) / 1e2 : 0);
+	subtotal += Math.round((val.price * val.quantity) * 1e2) / 1e2;
+	total = Math.round((tax + subtotal) * 1e2) / 1e2;
+      })).then((result) => { console.log(`getTaxInfo - ln: ${JSON.stringify(result)}`) ; return { tax, subtotal, total }; });
     }
   })
 }

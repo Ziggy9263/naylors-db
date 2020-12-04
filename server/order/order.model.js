@@ -45,7 +45,8 @@ const OrderSchema = new mongoose.Schema({
       id: Number,
       amount: Number,
       tax: Number,
-      authCode: String
+      authCode: String,
+      payOption: String
     },
     ts: { type: Date, default: Date.now }
   }],

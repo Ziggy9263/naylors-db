@@ -107,6 +107,7 @@ module.exports = {
       ),
       userComments: Joi.string(),
       paymentInfo: {
+	payOption: Joi.string(),	// InStore, WithCard
         cardNumber: Joi.string(),
         expiryMonth: Joi.string(),
         expiryYear: Joi.string(),
