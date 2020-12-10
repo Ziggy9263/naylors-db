@@ -48,6 +48,10 @@ const ProductSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  root: {
+    type: Boolean,
+    default: true
+  },
   taxExempt: {
     type: Boolean,
     default: false
@@ -90,8 +94,8 @@ ProductSchema.statics = {
    * @param {number} limit - Limit number of products to be returned.
    * @returns {Promise<Product[]>}
    */
-  list({ skip = 0, limit = 50 } = {}) {
-    return this.find()
+  list({ skip = 0, limit = 50, root = null } = {}) {
+    return this.find((root) ? { root } : {})
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)

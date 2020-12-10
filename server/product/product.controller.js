@@ -170,11 +170,11 @@ function update(req, res, next) {
  * @returns {Product[]}
  */
 function list(req, res, next) {
-  const { limit = 50, skip = 0 } = req.query;
-  if (req.query.q != undefined) Product.find({}).fuzzySearch(req.query.q).limit(+limit).skip(+skip).exec()
+  const { limit = 50, skip = 0, root = null } = req.query;
+  if (req.query.q != undefined) Product.find((root) ? {root} : {}).fuzzySearch(req.query.q).limit(+limit).skip(+skip).exec()
     .then(products => res.json({ "products": publicize(new Array(products))}))
     .catch(e => next(e));
-  else Product.list({ limit, skip })
+  else Product.list({ limit, skip, root })
     .then(products => res.json({ "products": publicize(new Array(products))}))
     .catch(e => next(e));
 }
