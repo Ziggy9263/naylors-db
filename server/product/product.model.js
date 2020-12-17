@@ -79,7 +79,10 @@ ProductSchema.statics = {
    */
   get(tag) {
     return this.findOne({ tag })
-      .populate('category')
+      .populate({
+        path: 'category',
+        populate: { path: 'department' },
+      })
       .exec()
       .then((product) => {
         if (!product) {
