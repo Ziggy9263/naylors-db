@@ -9,28 +9,28 @@ const router = express.Router(); // eslint-disable-line new-cap
 
 router.route('/')
   /** GET /api/categories - Get list of categories */
-  .get(validate(paramValidation.getProduct),
+  .get(validate(paramValidation.getCategory),
     categoryCtrl.list)
 
   /** POST /api/categories - Create new category */
   .post(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
-    validate(paramValidation.createProduct),
+    validate(paramValidation.createCategory),
     categoryCtrl.create);
 
-router.route('/:code')
-  /** GET /api/categories/:code - Get category */
+router.route('/:id')
+  /** GET /api/categories/:id - Get category */
   .get(categoryCtrl.get)
 
-  /** PUT /api/categories/:code - Update category */
+  /** PUT /api/categories/:id - Update category */
   .put(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
-    validate(paramValidation.updateProduct),
+    validate(paramValidation.updateCategory),
     categoryCtrl.update)
 
-  /** DELETE /api/categories/:code - Delete category */
+  /** DELETE /api/categories/:id - Delete category */
   .delete(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
     categoryCtrl.remove);
 
-/** Load category when API with code route parameter is hit */
-router.param('code', categoryCtrl.load);
+/** Load category when API with id route parameter is hit */
+router.param('id', categoryCtrl.load);
 
 module.exports = router;

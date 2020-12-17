@@ -6,9 +6,9 @@ const httpStatus = require('http-status');
 const APIError = require('../helpers/APIError');
 
 /**
- * Category Schema
+ * Department Schema
  */
-const CategorySchema = new mongoose.Schema({
+const DepartmentSchema = new mongoose.Schema({
   code: {
     type: Number,
     unique: true,
@@ -16,11 +16,6 @@ const CategorySchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    required: true
-  },
-  department: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Department',
     required: true
   },
   updatedLast: {
@@ -40,35 +35,34 @@ const CategorySchema = new mongoose.Schema({
 /**
  * Fuzzy Searching Capability via mongoose-fuzzy-searching plugin
  */
-CategorySchema.plugin(mongoose_fuzzy_searching, { fields: ['name'] });
+DepartmentSchema.plugin(mongoose_fuzzy_searching, { fields: ['name'] });
 
 /**
  * Statics
  */
-CategorySchema.statics = {
+DepartmentSchema.statics = {
   /**
-   * Get category
-   * @param {String} id - The id of category.
-   * @returns {Promise<Category, APIError>}
+   * Get department
+   * @param {Number} code - The code for department.
+   * @returns {Promise<Department, APIError>}
    */
-  get(_id) {
-    return this.findOne({ _id })
-      .populate('department')
+  get(code) {
+    return this.findOne({ code })
       .exec()
-      .then((category) => {
-        if (!category) {
-          const err = new APIError('No such category exists!', httpStatus.NOT_FOUND);
+      .then((department) => {
+        if (!department) {
+          const err = new APIError('No such department exists!', httpStatus.NOT_FOUND);
           return Promise.reject(err);
         }
-        return Promise.resolve(category);
+        return Promise.resolve(product);
       });
   },
 
   /**
-   * List categories in descending order of 'code'.
-   * @param {number} skip - Number of categories to be skipped.
-   * @param {number} limit - Limit number of categories to be returned.
-   * @returns {Promise<Category[]>}
+   * List departments in descending order of 'code'.
+   * @param {number} skip - Number of entries to be skipped.
+   * @param {number} limit - Limit number of entries to be returned.
+   * @returns {Promise<Department[]>}
    */
   list({ skip = 0, limit = 50, root = null } = {}) {
     return this.find({})
@@ -80,6 +74,6 @@ CategorySchema.statics = {
 };
 
 /**
- * @typedef Category
+ * @typedef Department
  */
-module.exports = mongoose.model('Category', CategorySchema, 'categories');
+module.exports = mongoose.model('Department', DepartmentSchema, 'departments');

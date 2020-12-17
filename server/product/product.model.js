@@ -22,7 +22,8 @@ const ProductSchema = new mongoose.Schema({
     type: String
   },
   category: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
     required: true
   },
   price: {
@@ -65,7 +66,7 @@ const ProductSchema = new mongoose.Schema({
 /**
  * Fuzzy Searching Capability via mongoose-fuzzy-searching plugin
  */
-ProductSchema.plugin(mongoose_fuzzy_searching, { fields: ['name', 'description', 'category'] });
+ProductSchema.plugin(mongoose_fuzzy_searching, { fields: ['name', 'description'] });
 
 /**
  * Statics
@@ -78,6 +79,7 @@ ProductSchema.statics = {
    */
   get(tag) {
     return this.findOne({ tag })
+      .populate('category')
       .exec()
       .then((product) => {
         if (!product) {

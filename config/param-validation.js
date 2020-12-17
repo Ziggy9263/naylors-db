@@ -69,7 +69,7 @@ module.exports = {
       tag: Joi.number().required(),
       name: Joi.string().required(),
       description: Joi.string(),
-      category: Joi.string(),
+      category: Joi.string().required(),
       price: Joi.number().required(),
       images: Joi.array(),
       sizes: Joi.array(),
@@ -93,6 +93,68 @@ module.exports = {
     },
     params: {
       tag: Joi.number().required()
+    }
+  },
+
+  // GET /api/categories
+  getCategory: {
+    params: {
+      limit: Joi.number(),
+      skip: Joi.number(),
+      q: Joi.string()
+    }
+  },
+
+  // POST /api/categories
+  createCategory: {
+    body: {
+      code: Joi.number().required(),
+      name: Joi.string().required(),
+      department: Joi.string().required(),
+      comments: Joi.string()
+    }
+  },
+
+  // PUT /api/categories/:tag
+  updateCategory: {
+    body: {
+      code: Joi.number().required(),
+      name: Joi.string().required(),
+      department: Joi.string().required(),
+      comments: Joi.string()
+    },
+    params: {
+      code: Joi.number().required()
+    }
+  },
+
+  // GET /api/departments
+  getDepartment: {
+    params: {
+      limit: Joi.number(),
+      skip: Joi.number(),
+      q: Joi.string()
+    }
+  },
+
+  // POST /api/departments
+  createDepartment: {
+    body: {
+      code: Joi.number().required(),
+      name: Joi.string().required(),
+      comments: Joi.string()
+    }
+  },
+
+  // PUT /api/departments/:tag
+  updateDepartment: {
+    body: {
+      code: Joi.number().required(),
+      name: Joi.string().required(),
+      comments: Joi.string()
+    },
+    params: {
+      code: Joi.number().required()
     }
   },
 

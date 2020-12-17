@@ -125,6 +125,7 @@ function create(req, res, next) {
     name: req.body.name,
     description: req.body.description,
     category: req.body.category,
+    root: req.body.root,
     price: req.body.price,
     images: req.body.images,
     sizes: req.body.sizes, // [ { size: "50lbs", tag: "36009" }, ... ]
@@ -147,15 +148,16 @@ function update(req, res, next) {
   const user = req.user;
   if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
   const product = req.product;
-  product.tag = req.body.tag;
-  product.name = req.body.name;
-  product.description = req.body.description;
-  product.category = req.body.category;
-  product.price = req.body.price;
-  product.images = req.body.images;
-  product.sizes = req.body.sizes;
-  product.taxExempt = req.body.taxExempt;
-  product.comments = req.body.comments;
+  product.tag = (req.body.tag != product.tag) ? req.body.tag : product.tag;
+  product.name = (req.body.name != product.name) ? req.body.name : product.name;
+  product.description = (req.body.description != product.description) ? req.body.description : product.description;
+  product.category = (req.body.category != product.category) ? req.body.category : product.category;
+  product.root = (req.body.root != product.root) ? req.body.root : product.root;
+  product.price = (req.body.price != product.price) ? req.body.price : product.price;
+  product.images = (req.body.images != product.images) ? req.body.images : product.images;
+  product.sizes = (req.body.sizes != product.sizes) ? req.body.sizes : product.sizes;
+  product.taxExempt = (req.body.taxExempt != product.taxExempt) ? req.body.taxExempt : product.taxExempt;
+  product.comments = (req.body.comments != product.comments) ? req.body.comments : product.comments;
 
   return product.save()
     .then(savedProduct => res.json(savedProduct))

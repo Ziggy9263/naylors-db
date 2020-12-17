@@ -19,8 +19,8 @@ function publicize(categoryArray) {
 /**
  * Load category and append to req.
  */
-function load(req, res, next, code) {
-  Category.get(code)
+function load(req, res, next, id) {
+  Category.get(id)
     .then((category) => {
       req.category = category; // eslint-disable-line no-param-reassign
       return next();
@@ -103,7 +103,7 @@ function list(req, res, next) {
   if (req.query.q != undefined) Category.find({}).fuzzySearch(req.query.q).limit(+limit).skip(+skip).exec()
     .then(categories => res.json({ "categories": publicize(new Array(categories))}))
     .catch(e => next(e));
-  else Category.list({ limit, skip, root })
+  else Category.list({ limit, skip })
     .then(categories => res.json({ "categories": publicize(new Array(categories))}))
     .catch(e => next(e));
 }
