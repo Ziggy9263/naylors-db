@@ -11,7 +11,6 @@ const APIError = require('../helpers/APIError');
 const CategorySchema = new mongoose.Schema({
   code: {
     type: Number,
-    unique: true,
     required: true
   },
   name: {
