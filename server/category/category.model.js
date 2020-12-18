@@ -72,7 +72,7 @@ CategorySchema.statics = {
    */
   list({ skip = 0, limit = 50, root = null } = {}) {
     return this.find({})
-      .sort({ code: -1 })
+      .sort({ code: 1 })
       .skip(+skip)
       .limit(+limit)
       .exec();
