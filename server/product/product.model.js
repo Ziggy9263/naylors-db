@@ -101,6 +101,10 @@ ProductSchema.statics = {
    */
   list({ skip = 0, limit = 50, root = null } = {}) {
     return this.find((root) ? { root } : {})
+      .populate({
+        path: 'category',
+        populate: { path: 'department'}
+      })
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)
