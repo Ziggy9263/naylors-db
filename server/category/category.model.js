@@ -17,11 +17,6 @@ const CategorySchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  department: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Department',
-    required: true
-  },
   updatedLast: {
     type: Date,
     default: Date.now
@@ -52,7 +47,6 @@ CategorySchema.statics = {
    */
   get(_id) {
     return this.findOne({ _id })
-      .populate('department')
       .exec()
       .then((category) => {
         if (!category) {

@@ -18,6 +18,12 @@ const DepartmentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  categories: [
+    {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'Category'
+    }
+  ],
   updatedLast: {
     type: Date,
     default: Date.now
