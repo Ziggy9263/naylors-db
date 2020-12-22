@@ -73,18 +73,27 @@ function createCategory(cat) {
     code: cat.code,
     name: cat.name
   })
+  console.log(`CreateCategory[code: ${cat.code}, name: ${cat.name}]`);
+  var result;
   return category.save()
-    .then(savedCategory => savedCategory._id)
-    .catch(e => next(e));
+    .then(savedCategory => savedCategory)
+    .catch(e => new APIError(`createCategory Failed ${e}`, httpStatus.BAD_GATEWAY));
 }
 
-async function createByDepartmentArray(list) {
-  var cats = [];
-  await list.forEach(async (item) => {
-    cats.push(await createCategory(item));
-  })
-  console.log(cats);
-  return cats;
+function createByDepartmentArray(data) {
+  var list = [ ...data ];
+  return new Promise((resolve, reject) => {
+    Category.insertMany(list, (error, results) => {
+      if (error) reject(new APIError(`createByDepartmentArray Failed ${e}`, httpStatus.BAD_GATEWAY));
+      var docs = [];
+      results.map(doc => {
+        docs.push(doc._id);
+        console.log('##############: '+doc._id);
+      });
+      console.log(' # # # # # # #: '+docs);
+      resolve(docs);
+    });
+  });
 }
 
 /**

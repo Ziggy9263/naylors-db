@@ -130,8 +130,15 @@ module.exports = {
     }
   },
 
-  // GET /api/departments
+  // GET /api/department
   getDepartment: {
+    params: {
+      code: Joi.number()
+    }
+  },
+
+  // GET /api/departments
+  getDepartments: {
     params: {
       limit: Joi.number(),
       skip: Joi.number(),

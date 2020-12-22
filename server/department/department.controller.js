@@ -58,12 +58,14 @@ function get(req, res) {
 async function create(req, res, next) {
   const user = req.user;
   if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
-  const department = new Department({
+  var categories = await catCont.createByDepartmentArray(req.body.categories).then(res => res);
+  var department = new Department({
     code: req.body.code,
     name: req.body.name,
-    categories: await catCont.createByDepartmentArray(req.body.categories),
+    categories,
     comments: req.body.comments
   });
+  console.log('# CATEGORIES #: '+categories);
 
   return await department.save()
     .then(savedDepartment => res.json(savedDepartment))

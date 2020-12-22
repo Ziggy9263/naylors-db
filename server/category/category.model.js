@@ -63,7 +63,7 @@ CategorySchema.statics = {
    * @param {number} limit - Limit number of categories to be returned.
    * @returns {Promise<Category[]>}
    */
-  list({ skip = 0, limit = 50, root = null } = {}) {
+  list({ skip = 0, limit = 50 } = {}) {
     return this.find({})
       .sort({ code: 1 })
       .skip(+skip)

@@ -55,6 +55,7 @@ DepartmentSchema.statics = {
   get(code) {
     return this.findOne({ code })
       .exec()
+      .populate('categories')
       .then((department) => {
         if (!department) {
           const err = new APIError('No such department exists!', httpStatus.NOT_FOUND);
