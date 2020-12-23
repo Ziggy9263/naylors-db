@@ -51,7 +51,6 @@ function get(req, res) {
  * Create new category
  * @property {string} req.body.code - Code ID used in store.
  * @property {string} req.body.name - User-friendly name of category.
- * @property {string} req.body.department - Name of department.
  * @property {string} req.body.comments - Administrator comments for dashboard use only.
  * @returns {Category}
  */
@@ -61,13 +60,40 @@ function create(req, res, next) {
   const category = new Category({
     code: req.body.code,
     name: req.body.name,
-    department: req.body.department,
     comments: req.body.comments
   });
 
   return category.save()
     .then(savedCategory => res.json(savedCategory))
     .catch(e => next(e));
+}
+
+function createCategory(cat) {
+  const category = new Category({
+    code: cat.code,
+    name: cat.name
+  })
+  console.log(`CreateCategory[code: ${cat.code}, name: ${cat.name}]`);
+  var result;
+  return category.save()
+    .then(savedCategory => savedCategory)
+    .catch(e => new APIError(`createCategory Failed ${e}`, httpStatus.BAD_GATEWAY));
+}
+
+function createByDepartmentArray(data) {
+  var list = [ ...data ];
+  return new Promise((resolve, reject) => {
+    Category.insertMany(list, (error, results) => {
+      if (error) reject(new APIError(`createByDepartmentArray Failed ${e}`, httpStatus.BAD_GATEWAY));
+      var docs = [];
+      results.map(doc => {
+        docs.push(doc._id);
+        console.log('##############: '+doc._id);
+      });
+      console.log(' # # # # # # #: '+docs);
+      resolve(docs);
+    });
+  });
 }
 
 /**
@@ -83,7 +109,6 @@ function update(req, res, next) {
   const category = req.category;
   category.code = req.body.code;
   category.name = req.body.name;
-  category.department = req.body.department;
   category.comments = req.body.comments;
 
   return category.save()
@@ -121,4 +146,4 @@ function remove(req, res, next) {
     .catch(e => next(e));
 }
 
-module.exports = { load, loadByCode, get, create, update, list, remove };
+module.exports = { load, loadByCode, get, create, createCategory, createByDepartmentArray, update, list, remove };

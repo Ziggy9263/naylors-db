@@ -1,4 +1,5 @@
 const Department = require('./department.model');
+const catCont = require('../category/category.controller');
 const httpStatus = require('http-status');
 const APIError = require('../helpers/APIError');
 
@@ -54,16 +55,19 @@ function get(req, res) {
  * @property {string} req.body.comments - Administrator comments for dashboard use only.
  * @returns {Department}
  */
-function create(req, res, next) {
+async function create(req, res, next) {
   const user = req.user;
   if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
-  const department = new Department({
+  var categories = await catCont.createByDepartmentArray(req.body.categories).then(res => res);
+  var department = new Department({
     code: req.body.code,
     name: req.body.name,
+    categories,
     comments: req.body.comments
   });
+  console.log('# CATEGORIES #: '+categories);
 
-  return department.save()
+  return await department.save()
     .then(savedDepartment => res.json(savedDepartment))
     .catch(e => next(e));
 }

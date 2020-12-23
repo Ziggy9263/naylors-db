@@ -44,5 +44,6 @@
   "extends": [
     "eslint:recommended",
     "airbnb-base"
-  ]
+  ],
+  "requireConfig": false
 }
