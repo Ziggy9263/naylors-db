@@ -53,7 +53,7 @@ DepartmentSchema.statics = {
    * @returns {Promise<Department, APIError>}
    */
   get(code) {
-    return this.findOne({ code })
+    return this.findOne(code)
       .exec()
       .populate('categories')
       .then((department) => {
@@ -73,6 +73,7 @@ DepartmentSchema.statics = {
    */
   list({ skip = 0, limit = 50, root = null } = {}) {
     return this.find({})
+      .populate('categories')
       .sort({ code: 1 })
       .skip(+skip)
       .limit(+limit)

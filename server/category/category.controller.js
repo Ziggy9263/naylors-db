@@ -84,7 +84,7 @@ function createByDepartmentArray(data) {
   var list = [ ...data ];
   return new Promise((resolve, reject) => {
     Category.insertMany(list, (error, results) => {
-      if (error) reject(new APIError(`createByDepartmentArray Failed ${e}`, httpStatus.BAD_GATEWAY));
+      if (error) reject(new APIError(`createByDepartmentArray Failed ${error}`, httpStatus.BAD_GATEWAY));
       var docs = [];
       results.map(doc => {
         docs.push(doc._id);
