@@ -80,7 +80,7 @@ async function createCategory(cat) {
     // Decided to use the non-standard save syntax to return proper Promise
     category.save({}, (error, doc) => {
       if (error) {
-        reject(new APIError(`createCategory Failed ${e}`, httpStatus.BAD_GATEWAY));
+        reject(new APIError(`createCategory Failed ${error}`, httpStatus.BAD_GATEWAY));
       }
       else {
         console.log(`\t\t${JSON.stringify(doc)}`);
