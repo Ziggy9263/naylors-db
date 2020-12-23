@@ -68,30 +68,45 @@ function create(req, res, next) {
     .catch(e => next(e));
 }
 
-function createCategory(cat) {
+async function createCategory(cat) {
   const category = new Category({
     code: cat.code,
     name: cat.name
   })
   console.log(`CreateCategory[code: ${cat.code}, name: ${cat.name}]`);
   var result;
-  return category.save()
-    .then(savedCategory => savedCategory)
-    .catch(e => new APIError(`createCategory Failed ${e}`, httpStatus.BAD_GATEWAY));
+  // Working with these promises was wack
+  return new Promise((resolve, reject) => {
+    // Decided to use the non-standard save syntax to return proper Promise
+    category.save({}, (error, doc) => {
+      if (error) {
+        reject(new APIError(`createCategory Failed ${e}`, httpStatus.BAD_GATEWAY));
+      }
+      else {
+        console.log(`\t\t${JSON.stringify(doc)}`);
+        resolve(doc);
+      }
+    });
+  });
 }
 
-function createByDepartmentArray(data) {
+async function createByDepartmentArray(data) {
   var list = [ ...data ];
-  return new Promise((resolve, reject) => {
-    Category.insertMany(list, (error, results) => {
-      if (error) reject(new APIError(`createByDepartmentArray Failed ${error}`, httpStatus.BAD_GATEWAY));
-      var docs = [];
-      results.map(doc => {
-        docs.push(doc._id);
-        console.log('##############: '+doc._id);
-      });
-      console.log(' # # # # # # #: '+docs);
-      resolve(docs);
+  return new Promise(async (resolve, reject) => {
+    // Promise.all gets iterable from map of ObjectID Strings
+    // We check that the length is same as data due to previous Promise shenanigans
+    Promise.all(list.map(async c => {
+      var cat;
+      await createCategory(c).then(d => cat = d).catch(reject);
+      console.log("catStringifyTest: "+JSON.stringify(cat));
+      return cat._id;
+    })).then(results => {
+      if (results.length == data.length)
+        resolve(results);
+      else
+        reject(new APIError('Categories were not fully created.', httpStatus.BAD_GATEWAY));
+    }).catch(e => {
+      reject(new APIError(`Department/Category Creation Failed: ${e}`, httpStatus.BAD_GATEWAY))
     });
   });
 }
@@ -100,7 +115,6 @@ function createByDepartmentArray(data) {
  * Update existing category
  * @property {number} req.body.code - The code of category.
  * @property {string} req.body.name - The name of category.
- * @property {number} req.body.department - Department
  * @returns {Category}
  */
 function update(req, res, next) {
