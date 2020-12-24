@@ -59,7 +59,9 @@ module.exports = {
     params: {
       limit: Joi.number(),
       skip: Joi.number(),
-      q: Joi.string()
+      q: Joi.string(),
+      root: Joi.boolean(),
+      category: Joi.string()
     }
   },
 
