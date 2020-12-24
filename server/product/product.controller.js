@@ -1,4 +1,5 @@
 const Product = require('./product.model');
+const Category = require('../category/category.model');
 const httpStatus = require('http-status');
 const APIError = require('../helpers/APIError');
 
@@ -11,6 +12,10 @@ const APIError = require('../helpers/APIError');
 function publicize(productArray) {
   const publicArray = productArray;
   productArray.forEach((product, index) => {
+    if (typeof 'category' in product === String)
+      publicArray[index].category = Category.get(id)
+        .then(category => category)
+        .catch(e => new APIError(e, httpStatus.BAD_GATEWAY));
     if ('comments' in product) delete publicArray[index].comments;
     if ('taxExempt' in product) delete publicArray[index].taxExempt;
   });
