@@ -175,14 +175,17 @@ function list(req, res, next) {
   const { limit = 50, skip = 0, q = null, root = null, category = null } = req.query;
   if (q != null)
     Product.find((root) ? {root} : {}).fuzzySearch(q).limit(+limit).skip(+skip).exec()
+      .populate('categories')
       .then(products => res.json({ "products": publicize(new Array(products))}))
       .catch(e => next(e));
   else if (category != null && q == null)
     Product.find({ "category": category }).limit(+limit).skip(+skip).exec()
+    .populate('categories')
       .then(products => res.json({ "products": publicize(new Array(products))}))
       .catch(e => next(e));
   else if (category != null && q != null)
     Product.find({ "category": category }).fuzzySearch(q).limit(+limit).skip(+skip).exec()
+    .populate('categories')
       .then(products => res.json({ "products": publicize(new Array(products))}))
       .catch(e => next(e));
   else Product.list({ limit, skip, root })
