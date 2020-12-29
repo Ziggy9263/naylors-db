@@ -12,10 +12,9 @@ const APIError = require('../helpers/APIError');
 function publicize(productArray) {
   const publicArray = productArray;
   productArray.forEach((product, index) => {
-    if (typeof 'category' in product === String)
-      publicArray[index].category = Category.get(id)
-        .then(category => category)
-        .catch(e => new APIError(e, httpStatus.BAD_GATEWAY));
+    publicArray[index].category = Category.get(product.category)
+      .then(category => category)
+      .catch(e => new APIError(e, httpStatus.BAD_GATEWAY));
     if ('comments' in product) delete publicArray[index].comments;
     if ('taxExempt' in product) delete publicArray[index].taxExempt;
   });
@@ -179,18 +178,15 @@ function update(req, res, next) {
 function list(req, res, next) {
   const { limit = 50, skip = 0, q = null, root = null, category = null } = req.query;
   if (q != null)
-    Product.find((root) ? {root} : {}).populate('categories').fuzzySearch(q).limit(+limit).skip(+skip).exec()
-
+    Product.find((root) ? {root} : {}).fuzzySearch(q).limit(+limit).skip(+skip).exec()
       .then(products => res.json({ "products": publicize(new Array(products))}))
       .catch(e => next(e));
   else if (category != null && q == null)
-    Product.find({ "category": category }).populate('categories').limit(+limit).skip(+skip).exec()
-
+    Product.find({ "category": category }).limit(+limit).skip(+skip).exec()
       .then(products => res.json({ "products": publicize(new Array(products))}))
       .catch(e => next(e));
   else if (category != null && q != null)
-    Product.find({ "category": category }).populate('categories').fuzzySearch(q).limit(+limit).skip(+skip).exec()
-
+    Product.find({ "category": category }).fuzzySearch(q).limit(+limit).skip(+skip).exec()
       .then(products => res.json({ "products": publicize(new Array(products))}))
       .catch(e => next(e));
   else Product.list({ limit, skip, root })
