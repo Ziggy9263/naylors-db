@@ -37,7 +37,9 @@ const envVarsSchema = Joi.object({
   MX_CONSUMER_SECRET: Joi.string().required()
     .description('MX Payments API Consumer Secret'),
   MX_MERCHANT_ID: Joi.number()
-    .description('MX Payments API Merchant ID')
+    .description('MX Payments API Merchant ID'),
+  FIREBASE_WEBAPIKEY: Joi.string().required()
+    .description('Firebase Web API Key')
 
 }).unknown()
   .required();
@@ -67,7 +69,8 @@ const config = {
     consumerKey: envVars.MX_CONSUMER_KEY,
     consumerSecret: envVars.MX_CONSUMER_SECRET,
     merchantId: envVars.MX_MERCHANT_ID
-  }
+  },
+  firebaseWebApiKey: envVars.FIREBASE_WEBAPIKEY
 };
 
 module.exports = config;

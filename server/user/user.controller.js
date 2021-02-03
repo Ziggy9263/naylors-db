@@ -1,6 +1,7 @@
 const User = require('./user.model');
 const uuid = require('uuid');
 const config = require('../../config/config');
+const admin = require('firebase-admin');
 // const mail = require('../helpers/mail');
 // const { config } = require('bluebird');
 

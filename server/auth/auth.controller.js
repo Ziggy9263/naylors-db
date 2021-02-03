@@ -11,6 +11,7 @@ const User = require('../user/user.model');
  * @param next
  * @returns {*}
  */
+// TODO: Needs rewrite for Firebase.
 function login(req, res, next) {
   // Creates and returns JWT from User.email
   let email = null;
@@ -43,6 +44,7 @@ function login(req, res, next) {
   .catch(e => next(e));
 }
 
+// Verification will be handled by Firebase. TODO: Needs rewrite.
 function verify(req, res, next) {
   const user = req.user;
   if (!user) next(new APIError('Token Invalid', httpStatus.BAD_REQUEST));
