@@ -5,8 +5,12 @@ const paramValidation = require('../../config/param-validation');
 const authCtrl = require('./auth.controller');
 const userCtrl = require('../user/user.controller');
 const config = require('../../config/config');
+const firebaseValidate = require('../helpers/firebaseValidate');
 
 const router = express.Router(); // eslint-disable-line new-cap
+
+router.route('/')
+  .get(firebaseValidate(), authCtrl.)
 
 /** POST /api/auth/login - Returns token if correct username and password is provided */
 router.route('/login')

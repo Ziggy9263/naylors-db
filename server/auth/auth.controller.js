@@ -56,6 +56,16 @@ function verify(req, res, next) {
   return next(new APIError('Verification Error', httpStatus.INTERNAL_SERVER_ERROR));
 }
 
+function googleLoginAuthentication(req, res, next) {
+  const googleAuth = req.user;
+  User.findOne({'uid': googleAuth.uid})
+  .then((user) => {
+    if(!user) return next(new APIError('User Not Found', httpStatus.NOT_FOUND));
+    return res.json(user);
+  })
+
+}
+
 /**
  * This is a protected route. Will return random number only if jwt token is provided in header.
  * @param req
