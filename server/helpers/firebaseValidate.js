@@ -13,10 +13,10 @@ module.exports = validateFirebaseIdToken = async (req, res, next) => {
 	let idToken;
 	if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
 		// Read ID Token from Auth header.
-		idtoken = req.headers.authorization.split('Bearer ')[1];
+		idToken = req.headers.authorization.split('Bearer ')[1];
 	} else if (req.cookies) {
 		// Read ID from cookie.
-		idtoken = req.cookies.__session;
+		idToken = req.cookies.__session;
 	} else {
 		// No cookie.
 		res.status(403).send('Unauthorized - No authorization passed as cookie.');
@@ -30,7 +30,7 @@ module.exports = validateFirebaseIdToken = async (req, res, next) => {
 		next();
 		return;
 	} catch (error) {
-		res.status(403).send('Unauthorized - Authorization decoding failed. Error: ' + error.toString());
+		res.status(403).send('Unauthorized - ' + error.toString());
 		return;
 	}
 };
