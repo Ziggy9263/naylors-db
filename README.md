@@ -29,6 +29,11 @@ Set environment (vars):
 cp .env.example .env
 ```
 
+Download and export the GOOGLE_APPLICATION_CREDENTIALS to the env
+```sh
+export GOOGLE_APPLICATION_CREDENTIALS='/home/<user>/XXXXX.json'
+```
+
 Start server:
 ```sh
 # Start server
