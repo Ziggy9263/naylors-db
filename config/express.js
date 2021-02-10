@@ -13,8 +13,12 @@ const winstonInstance = require('./winston');
 const routes = require('../index.route');
 const config = require('./config');
 const APIError = require('../server/helpers/APIError');
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
 
 const app = express();
+
+admin.initializeApp();
 
 if (config.env === 'development') {
   app.use(logger('dev'));
