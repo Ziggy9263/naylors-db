@@ -5,7 +5,7 @@ module.exports = validateFirebaseIdToken = async (req, res, next) => {
 	if ((!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) &&
 		!(req.cookies && req.cookies.__session)) {
 		// No Firebase ID token was passed as Bearer token.
-		res.status(403).send('Unauthorized - No authorization passed.');
+		res.status(403).send('Unauthorized');
 		return;
 	}
 
@@ -19,18 +19,18 @@ module.exports = validateFirebaseIdToken = async (req, res, next) => {
 		idToken = req.cookies.__session;
 	} else {
 		// No cookie.
-		res.status(403).send('Unauthorized - No authorization passed as cookie.');
+		res.status(403).send('Unauthorized');
 		return;
 	}
 
 	// Verify Token with Firebase.
 	try {
 		const decodedIdToken = await admin.auth().verifyIdToken(idToken);
-		req.user = decodedIdToken;
+		req.auth = decodedIdToken;
 		next();
 		return;
 	} catch (error) {
-		res.status(403).send('Unauthorized - ' + error.toString());
+		res.status(403).send('Unauthorized');
 		return;
 	}
 };

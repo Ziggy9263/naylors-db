@@ -12,7 +12,6 @@ const admin = require('firebase-admin');
  */
 function publicize(userInfo) {
   const publicUser = userInfo.toObject();
-  if ('password' in userInfo) delete publicUser.password;
   if ('verification' in userInfo) {
     publicUser.verification = (userInfo.verification === 'verified') ? 'verified' : 'unverified';
   }
@@ -59,9 +58,8 @@ function get(req, res) {
 
 /**
  * Create new user
- * @property {string} req.body.email - The email of user.
- * @property {string} req.body.phone - The phone of user.
- * @property {string} req.body.password
+ * @property {string} req.body.name
+ * @property {string} req.body.phone
  * @property {string} req.body.business
  * @property {string} req.body.address
  * @property {string} req.body.taxExempt
@@ -71,9 +69,10 @@ function get(req, res) {
  * @returns {User}
  */
 function create(req, res, next) {
+  const auth = req.auth;
   const userData = {
-    email: req.body.email,
-    password: req.body.password,
+    email: auth.email,
+    uid: auth.uid,
     name: req.body.name,
     phone: req.body.phone,
     business: req.body.businessInfo,
@@ -97,9 +96,8 @@ function create(req, res, next) {
 
 /**
  * Update existing user
- * @property {string} req.body.email - The email of user.
- * @property {string} req.body.phone - The phone of user.
- * @property {string} req.body.password
+ * @property {string} req.body.name
+ * @property {string} req.body.phone
  * @property {string} req.body.business
  * @property {string} req.body.address
  * @property {string} req.body.taxExempt

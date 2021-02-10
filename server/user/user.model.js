@@ -2,22 +2,20 @@ const Promise = require('bluebird');
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const APIError = require('../helpers/APIError');
-const bcrypt = require('bcryptjs');
-
-const SALT_WORK_FACTOR = 10;
 
 /**
  * User Schema
  */
 const UserSchema = new mongoose.Schema({
+  uid: {
+    type: String,
+    unique: true,
+    required: true
+  },
   email: {
     type: String,
     unique: true,
     lowercase: true,
-    required: true
-  },
-  password: {
-    type: String,
     required: true
   },
   name: {
@@ -65,46 +63,6 @@ const UserSchema = new mongoose.Schema({
 });
 
 /**
- * Add your
- * - pre-save hooks
- * - validations
- * - virtuals
- */
-
-UserSchema.pre('save', function hashPass(next) {
-  const user = this;
-  if (!user.isModified('password')) return next();
-
-  // eslint-disable-next-line consistent-return
-  bcrypt.genSalt(SALT_WORK_FACTOR, (saltErr, salt) => {
-    if (saltErr) return next(saltErr);
-    bcrypt.hash(user.password, salt, (hashErr, hash) => {
-      if (hashErr) return next(hashErr);
-
-      user.password = hash;
-      return next();
-    });
-  });
-  return new APIError('Encryption Failure', httpStatus.FAILED_DEPENDENCY);
-});
-/**
- * Methods
- */
-
-/**
- * @param {string} candidatePassword - Password to test match
- * @param {callback} cb - Callback
- */
-// eslint-disable-next-line func-names
-UserSchema.methods.comparePassword = function (candidatePassword, cb) {
-  // eslint-disable-next-line consistent-return
-  bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
-    if (err) return cb(err);
-    cb(null, isMatch);
-  });
-};
-
-/**
  * Statics
  */
 UserSchema.statics = {
@@ -134,7 +92,6 @@ UserSchema.statics = {
   list({ skip = 0, limit = 50 } = {}) {
     return this.find()
       .sort({ createdAt: -1 })
-      .populate('user', '-password')
       .skip(+skip)
       .limit(+limit)
       .exec();

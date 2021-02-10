@@ -57,7 +57,7 @@ function verify(req, res, next) {
 }
 
 function googleLoginAuthentication(req, res, next) {
-  const googleAuth = req.user;
+  const googleAuth = req.auth;
   User.findOne({'uid': googleAuth.uid})
   .then((user) => {
     if(!user) return next(new APIError('User Not Found', httpStatus.NOT_FOUND));
