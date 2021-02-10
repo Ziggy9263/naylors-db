@@ -80,4 +80,4 @@ function getRandomNumber(req, res) {
   });
 }
 
-module.exports = { login, verify, getRandomNumber };
+module.exports = { login, verify, getRandomNumber, googleLoginAuthentication };
