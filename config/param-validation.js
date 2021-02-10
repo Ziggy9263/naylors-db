@@ -4,14 +4,16 @@ module.exports = {
   // POST /api/users
   createUser: {
     body: {
+      uid: Joi.string().required(),
       email: Joi.string().required(),
-      password: Joi.string().required(),
       name: Joi.string().required(),
       phone: Joi.string()
         .regex(/\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/)
         .default(null),
       business: Joi.string().default(null),
       address: Joi.string().default(null),
+      state: Joi.string().default(null),
+      zipcode: Joi.string().default(null),
       taxExempt: Joi.string().default(null),
       isAdmin: Joi.boolean().default(false),
       adminVerification: Joi.string().default(null),
@@ -22,10 +24,8 @@ module.exports = {
   // UPDATE /api/users/:userId
   updateUser: {
     body: {
-      email: Joi.string(),
       phone: Joi.string()
         .regex(/\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/),
-      password: Joi.string(),
       name: Joi.string(),
       business: Joi.string(),
       address: Joi.string(),
