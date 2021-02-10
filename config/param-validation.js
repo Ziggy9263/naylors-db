@@ -4,7 +4,6 @@ module.exports = {
   // POST /api/users
   createUser: {
     body: {
-      uid: Joi.string().required(),
       email: Joi.string().required(),
       name: Joi.string().required(),
       phone: Joi.string()
