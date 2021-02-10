@@ -11,7 +11,7 @@ const router = express.Router(); // eslint-disable-line new-cap
 
 /** GET /api/auth - Returns user if user with uid exists, returns NOT_FOUND otherwise */
 router.route('/')
-  .get(firebaseValidate(), authCtrl.googleLoginAuthentication);
+  .get(firebaseValidate, authCtrl.googleLoginAuthentication);
 
 /** POST /api/auth/login - Returns token if correct username and password is provided */
 router.route('/login')
