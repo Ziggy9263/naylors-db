@@ -18,7 +18,9 @@ const admin = require('firebase-admin');
 
 const app = express();
 
-admin.initializeApp();
+admin.initializeApp({
+  credential: admin.credential.applicationDefault()
+});
 
 if (config.env === 'development') {
   app.use(logger('dev'));
