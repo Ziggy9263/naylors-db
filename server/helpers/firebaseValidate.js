@@ -30,7 +30,7 @@ module.exports = validateFirebaseIdToken = async (req, res, next) => {
 		next();
 		return;
 	} catch (error) {
-		res.status(403).send('Unauthorized - Authorization decoding failed.');
+		res.status(403).send('Unauthorized - Authorization decoding failed. Error: ' + error.toString());
 		return;
 	}
 };
