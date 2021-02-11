@@ -12,9 +12,9 @@ const APIError = require('../helpers/APIError');
 function publicize(productArray) {
   const publicArray = productArray;
   productArray.forEach((product, index) => {
-    publicArray[index].category = Category.get(product.category)
-      .then(category => category)
-      .catch(e => new APIError(e, httpStatus.BAD_GATEWAY));
+    //publicArray[index].category = Category.get(product.category)
+      //.then(category => category)
+      //.catch(e => new APIError(e, httpStatus.BAD_GATEWAY));
     if ('comments' in product) delete publicArray[index].comments;
     if ('taxExempt' in product) delete publicArray[index].taxExempt;
   });
