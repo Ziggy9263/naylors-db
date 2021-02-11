@@ -3,7 +3,7 @@ const User = require('../user/user.model');
 module.exports = appendUser = async (req, res, next) => {
   let auth = req.auth;
   try {
-    let user = await User.get({'uid': auth.uid})
+    let user = await User.findOne({'uid': auth.uid});
     req.user = user;
     next();
     return;
