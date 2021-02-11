@@ -5,7 +5,7 @@ module.exports = validateFirebaseIdToken = async (req, res, next) => {
 	if ((!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) &&
 		!(req.cookies && req.cookies.__session)) {
 		// No Firebase ID token was passed as Bearer token.
-		res.status(403).send('Unauthorized');
+		res.status(403).send('Unauthorized, Validating Token Failed');
 		return;
 	}
 
@@ -19,7 +19,7 @@ module.exports = validateFirebaseIdToken = async (req, res, next) => {
 		idToken = req.cookies.__session;
 	} else {
 		// No cookie.
-		res.status(403).send('Unauthorized');
+		res.status(403).send('Unauthorized, Validating Token Failed');
 		return;
 	}
 
@@ -30,7 +30,7 @@ module.exports = validateFirebaseIdToken = async (req, res, next) => {
 		next();
 		return;
 	} catch (error) {
-		res.status(403).send('Unauthorized');
+		res.status(403).send('Unauthorized, Validating Token Failed, ' + error.toString());
 		return;
 	}
 };
