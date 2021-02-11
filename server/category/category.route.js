@@ -1,5 +1,6 @@
 const express = require('express');
-const expressJwt = require('express-jwt');
+const firebaseValidate = require('../helpers/firebaseValidate');
+const appendUser = require('../helpers/appendUser');
 const config = require('../../config/config');
 const validate = require('express-validation');
 const paramValidation = require('../../config/param-validation');
