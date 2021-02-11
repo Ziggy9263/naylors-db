@@ -13,7 +13,8 @@ router.route('/')
     categoryCtrl.list)
 
   /** POST /api/categories - Create new category */
-  .post(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .post(firebaseValidate,
+    appendUser,
     validate(paramValidation.createCategory),
     categoryCtrl.create);
 
@@ -22,12 +23,14 @@ router.route('/:id')
   .get(categoryCtrl.get)
 
   /** PUT /api/categories/:id - Update category */
-  .put(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .put(firebaseValidate,
+    appendUser,
     validate(paramValidation.updateCategory),
     categoryCtrl.update)
 
   /** DELETE /api/categories/:id - Delete category */
-  .delete(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .delete(firebaseValidate,
+    appendUser,
     categoryCtrl.remove);
 
 /** Load category when API with id route parameter is hit */

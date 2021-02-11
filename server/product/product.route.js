@@ -1,5 +1,6 @@
 const express = require('express');
-const expressJwt = require('express-jwt');
+const firebaseValidate = require('../helpers/firebaseValidate');
+const appendUser = require('../helpers/appendUser');
 const config = require('../../config/config');
 const validate = require('express-validation');
 const paramValidation = require('../../config/param-validation');
@@ -13,7 +14,8 @@ router.route('/')
     productCtrl.list)
 
   /** POST /api/products - Create new product */
-  .post(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .post(firebaseValidate,
+    appendUser,
     validate(paramValidation.createProduct),
     productCtrl.create);
 
@@ -22,12 +24,14 @@ router.route('/:tag')
   .get(productCtrl.get)
 
   /** PUT /api/products/:tag - Update product */
-  .put(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .put(firebaseValidate,
+    appendUser,
     validate(paramValidation.updateProduct),
     productCtrl.update)
 
   /** DELETE /api/products/:tag - Delete product */
-  .delete(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .delete(firebaseValidate,
+    appendUser,
     productCtrl.remove);
 
 /** Load product when API with tag route parameter is hit */

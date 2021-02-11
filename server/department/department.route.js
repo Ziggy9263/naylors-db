@@ -13,7 +13,8 @@ router.route('/')
     departmentCtrl.list)
 
   /** POST /api/departments - Create new department */
-  .post(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .post(firebaseValidate,
+    appendUser,
     validate(paramValidation.createDepartment),
     departmentCtrl.create);
 
@@ -22,12 +23,14 @@ router.route('/:code')
   .get(departmentCtrl.get)
 
   /** PUT /api/departments/:code - Update department */
-  .put(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .put(firebaseValidate,
+    appendUser,
     validate(paramValidation.updateDepartment),
     departmentCtrl.update)
 
   /** DELETE /api/departments/:code - Delete department */
-  .delete(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .delete(firebaseValidate,
+    appendUser,
     departmentCtrl.remove);
 
 /** Load department when API with code route parameter is hit */

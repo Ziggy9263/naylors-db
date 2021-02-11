@@ -9,11 +9,13 @@ const router = express.Router(); // eslint-disable-line new-cap
 
 router.route('/')
   /** GET /api/orders - Get list of orders */
-  .get(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .get(firebaseValidate,
+    appendUser,
     orderCtrl.list)
 
   /** POST /api/orders - Create new order */
-  .post(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .post(firebaseValidate,
+    appendUser,
     validate(paramValidation.createOrder),
     orderCtrl.create);
 
@@ -22,12 +24,14 @@ router.route('/:uuid')
   .get(orderCtrl.get)
 
   /** PUT /api/orders/:uuid - Update order */
-  .put(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .put(firebaseValidate,
+    appendUser,
     validate(paramValidation.updateOrder),
     orderCtrl.update)
 
   /** DELETE /api/orders/:uuid - Delete order */
-  .delete(expressJwt({ secret: config.jwtSecret, algorithms: ['HS256'] }),
+  .delete(firebaseValidate,
+    appendUser,
     orderCtrl.remove);
 
 /** Load order when API with uuid route parameter is hit */
