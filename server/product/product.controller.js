@@ -150,7 +150,7 @@ function create(req, res, next) {
  */
 function update(req, res, next) {
   const user = req.user;
-  if (!user.isAdmin) return next(new APIError('Must be Administrator', httpStatus.UNAUTHORIZED));
+  if (!user.isAdmin) return next(new APIError('Must be Administrator, isAdmin: ' + user.isAdmin, httpStatus.UNAUTHORIZED));
   const product = req.product;
   product.tag = (req.body.tag != product.tag) ? req.body.tag : product.tag;
   product.name = (req.body.name != product.name) ? req.body.name : product.name;
