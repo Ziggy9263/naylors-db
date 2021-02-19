@@ -282,9 +282,9 @@ function list(req, res, next) {
   var user = req.user?._id;
   const { limit = 50, skip = 0, admin = false } = req.query;
 
-  (admin && user.admin)
+  (admin && req.user.admin)
   ? Order.list({ limit, skip })
-    .then(orders => res.json(publicize(new Array(orders))))
+    .then(orders => res.json(new Array(orders)))
     .catch(e => next(e))
   : Order.list({ limit, skip, user })
     .then(orders => res.json(publicize(new Array(orders))))
