@@ -11,7 +11,7 @@ const APIError = require('../helpers/APIError');
  * @param {Object<Order>[]} orderArray - Should be an array of mongoose objects
  * @returns {Object<Order>[]}
  */
-function publicize(orderArray, {isAdmin = false}) {
+function publicize(orderArray, isAdmin = false) {
   const publicArray = orderArray;
   orderArray.forEach((order, index) => {
     if ('comments' in order && !isAdmin) delete publicArray[index].comments;
@@ -279,14 +279,14 @@ async function update(req, res, next) {
  * @returns {Order[]}
  */
 function list(req, res, next) {
-  var user = req.user?._id;
+  var user = req.user;
   const { limit = 50, skip = 0, admin = false } = req.query;
 
-  (admin && req.user?.isAdmin)
+  (admin && user.isAdmin)
   ? Order.list({ limit, skip })
     .then(orders => res.json(publicize(new Array(orders), isAdmin = true)))
     .catch(e => next(e))
-  : Order.list({ limit, skip, user })
+  : Order.list({ limit, skip, user = user._id })
     .then(orders => res.json(publicize(new Array(orders))))
     .catch(e => next(e));
 }
