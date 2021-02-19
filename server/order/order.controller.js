@@ -280,8 +280,13 @@ async function update(req, res, next) {
  */
 function list(req, res, next) {
   var user = req.user?._id;
-  const { limit = 50, skip = 0 } = req.query;
-  Order.list({ limit, skip, user })
+  const { limit = 50, skip = 0, admin = false } = req.query;
+
+  (admin && user.admin)
+  ? Order.list({ limit, skip })
+    .then(orders => res.json(publicize(new Array(orders))))
+    .catch(e => next(e))
+  : Order.list({ limit, skip, user })
     .then(orders => res.json(publicize(new Array(orders))))
     .catch(e => next(e));
 }

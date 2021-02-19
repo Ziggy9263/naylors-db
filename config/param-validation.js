@@ -168,6 +168,16 @@ module.exports = {
     }
   },
 
+  // GET /api/orders
+  getOrders: {
+    params: {
+      limit: Joi.number(),
+      skip: Joi.number(),
+      q: Joi.string(),
+      admin: Joi.boolean()
+    }
+  },
+
   // POST /api/orders
   createOrder: {
     body: {
