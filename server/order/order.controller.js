@@ -286,7 +286,7 @@ function list(req, res, next) {
   ? Order.list({ limit, skip })
     .then(orders => res.json(publicize(new Array(orders), isAdmin = true)))
     .catch(e => next(e))
-  : Order.list({ limit, skip, user = user._id })
+  : Order.list({ limit, skip, user: user._id })
     .then(orders => res.json(publicize(new Array(orders))))
     .catch(e => next(e));
 }
