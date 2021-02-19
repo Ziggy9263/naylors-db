@@ -73,7 +73,7 @@ const OrderSchema = new mongoose.Schema({
  * Pre Save Hook
  */
 OrderSchema.pre('save', function(next) {
-  this.updatedLast = new Date.now;
+  this.updatedLast = Date.now;
   next();
 })
 
