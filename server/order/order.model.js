@@ -70,6 +70,14 @@ const OrderSchema = new mongoose.Schema({
 });
 
 /**
+ * Pre Save Hook
+ */
+OrderSchema.pre('save', function(next) {
+  this.updatedLast = new Date.now();
+  next();
+})
+
+/**
  * Statics
  */
 OrderSchema.statics = {
